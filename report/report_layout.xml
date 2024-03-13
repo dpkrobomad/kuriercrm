@@ -1,0 +1,100 @@
+<odoo>
+    <data>
+        <record id="paper_format_sale_custome"
+            model="report.paperformat">
+            <field name="name">Employe A4</field>
+            <field name="default" eval="True"/>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">15</field>
+            <field name="margin_bottom">0</field>
+            <field name="margin_left">10</field>
+            <field name="margin_right">10</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">0</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <template id="sale_custome_external_layout">
+            <style>
+                
+                <![CDATA[
+                @font-face {
+                    font-family: 'Serif Semi Bold';
+                    font-style: normal;
+                    font-weight: normal;
+                    src: url('/deepu_sale/static/src/font/SourceSerifPro-Semibold.ttf.woff') format('woff');
+                }
+                @font-face {
+                    font-family: 'Sans Regular';
+                    font-style: normal;
+                    font-weight: normal;
+                    src: url('/deepu_sale/static/src/font/SourceSansPro-Regular.otf.woff') format('woff');
+                }
+                th, td {
+                  border: 1px solid black;
+                  font-size: 18px;
+                  padding: 7px;
+                  font-family: 'Sans Regular';
+                }
+                .side-head{
+                    font-family:'Serif Semi Bold'!important;
+                    font-size: 21px;
+                    color: #875a7b;
+                    text-decoration: underline;
+                    font-weight: bold;
+                    margin-bottom: 15px;
+                }
+                .mini-head{
+                    font-family:'Serif Semi Bold'!important;
+                    display: list-item;
+                    list-style-type: square;
+                    list-style-position: inside; 
+                    font-size: 21px;
+                    margin-left: 14px;
+                    margin-bottom: 8px;
+                }
+                .mini-p{
+                    font-family: 'Sans Regular';
+                    margin-top: 10px;text-align: match-parent;
+                    font-size: 21px;
+                    margin-left: 32px;
+                }
+                .bullet-p{
+                    font-family: 'Sans Regular';
+                    display: list-item;
+                    list-style-type: circle;
+                    list-style-position: inside; 
+                    margin-left: 32px;
+                    margin-top: 2px;
+                    margin-bottom: 3px;
+                }
+                .date-div{
+                  text-align: right;
+                  font-size: 24px;
+              }
+              .letter-address{
+                  font-family:'Serif Semi Bold'!important;
+                  font-size: 24px;
+              }
+              .letter-head{
+                  text-align: center;
+                  font-size: 26px;
+                  font-family: 'Serif Semi Bold' !important;
+                  margin-top: 20px;
+              }
+              .letter-body{
+                  font-family: 'Sans Regular';
+                  margin-top: 40px;
+                  font-size: 24px;
+
+              }
+              
+
+            ]]>
+          </style>
+        </template>
+    </data>
+</odoo>

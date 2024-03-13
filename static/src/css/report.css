@@ -1,0 +1,73 @@
+strong
+{
+    font-weight: bold;
+    
+}
+
+td {
+    font-size:11px;
+}
+th {
+    font-size:11px;
+    min-width: 100px;
+}
+tr {
+    font-size:11px;
+}
+address {
+    font-size:12px;
+    margin-bottom: 0px !important;
+}
+.address.row {
+    margin-top: 20px;
+}
+
+.deepu-cmp {
+    font-size:12px;
+}
+
+.deepu-hdr{
+    font-size:12px;
+}
+.deepu-pymt{
+    font-size:12px;
+
+}
+.deepu-cnt{
+    font-size:12px;
+
+}
+h5, .h5 {
+    font-size: 13px !important;
+}
+h2, .h2{
+    font-size: 15px !important;
+}
+.o_background_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.float-left {
+    float: left;
+}
+
+.float-right {
+    display:none;
+}
+
+.company_address {
+    text-align: left;
+}
+p{
+    font-size:12px;
+}
+.clearfix.mb8 {
+    display:none;
+}
+
+.o_background_header img {
+    max-width: 25% !important;
+    align-self: baseline;
+}

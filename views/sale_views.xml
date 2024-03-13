@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+
+
+		<record id="customers_res_partner_inherit" model="ir.ui.view">
+			<field name="name">Customers</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="base.view_partner_form" />
+			<field name="arch" type="xml">
+				<field name="company_name" position="after">
+					<field name="contact_person" placeholder="Contact Person Name" required="True"   attrs="{'invisible':[('company_type','=','individual')]}" />
+				</field>
+			</field>
+    	</record>
+		
+		<record id="sale_order_view_list_inherit_sale_view" model="ir.ui.view">
+			<field name="name">Sale Order List</field>
+			<field name="model">sale.order</field>
+			<field name="inherit_id" ref="sale.view_quotation_tree" />
+			<field name="arch" type="xml">
+				<field name="state" position="after">
+					<field name="new_state" decoration-primary="state =='draft'"  decoration-success="state == 'sent'" decoration-info="state == 'sale'" decoration-warning="state == 'invoiced'" decoration-muted="state == 'cancel'" widget="badge" optional="show" />
+				</field>
+				<field name="partner_id" position="after">
+					<field name="contact_person"  />
+				</field>
+			</field>
+    	</record>
+		<record id="sale_order_view_form_inherit_sale_view" model="ir.ui.view">
+			<field name="name">sale.order.form</field>
+			<field name="model">sale.order</field>
+			<field name="inherit_id" ref="sale.view_order_form"/>
+			<field name="arch" type="xml">
+				<xpath expr='//field[@name="order_line"]/tree/field[@name="product_uom_qty"]' position="after">
+					<field name="sale_currency" optional="hide"/>	
+					<field name="new_unit_price"/>	
+					<field name="new_cost" optional="hide"/>	
+				</xpath>
+				<xpath expr='//field[@name="order_line"]/tree/field[@name="price_unit"]' position="attributes">
+					<attribute name="invisible">1</attribute>
+				</xpath>
+				
+				<xpath expr="//form/sheet/notebook/page[@name='other_information']" position="attributes">
+					<attribute name="invisible">1</attribute>
+				</xpath>
+				<xpath expr="//field[@name='sale_order_template_id']" position="attributes">
+					<attribute name="invisible">1</attribute>
+				</xpath>
+				
+				<xpath expr="//form/sheet/notebook/page[@name='customer_signature']" position="attributes">
+					<attribute name="invisible">1</attribute>
+				</xpath>
+				<xpath expr="//form/sheet/notebook/page[@name='optional_products']" position="attributes">
+					<attribute name="invisible">1</attribute>
+				</xpath>
+<!-- 
+				<xpath expr="//field[@name='state']" position="replace">
+					
+					<field name="state" widget="statusbar" statusbar_visible="draft,sent,sale,tracking,invoiced" readonly="1" />
+				</xpath> -->
+
+				<!-- <xpath expr="//field[@name='order_line']/tree//field[@name='purchase_price']" position="attributes">
+                	<attribute name="readonly">0</attribute>
+            	</xpath> -->
+				<xpath expr="//header" position="inside">
+					<button name="action_tracking" id="action_tracking" string="Start Tracking" class="btn-primary" type="object" attrs="{'invisible':['|',('new_state','!=','sale'),('tracking_id','!=',False)]}"/>
+
+				</xpath>
+				<xpath expr="//button[@name='preview_sale_order']" position="after">
+	
+					<button name="preview_tracking"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-thumb-tack icon"
+                            attrs="{'invisible': [('new_state', '!=', 'tracking')]}">
+							<div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Track Now</span>
+                                <span class="o_stat_text"><field name="tracking_id" widget="statinfo" string="Track Now"/></span>
+                            </div>
+                            
+                        </button>
+				</xpath>
+				<xpath expr="//button[@name='%(sale.action_view_sale_advance_payment_inv)d'][1]" position="attributes">
+					<attribute name="invisible">1</attribute>
+					<!-- <attribute name="attrs">{'invisible':[('state','=','sale')]} </attribute> -->
+				</xpath>
+				<xpath expr="//button[@name='%(sale.action_view_sale_advance_payment_inv)d'][2]" position="attributes">
+					<!-- <attribute name="invisible">1</attribute> -->
+					<attribute name="attrs">{'invisible':['&amp;',('new_state','!=','tracking'),('is_delivered','=',False)]} </attribute>
+				</xpath>
+				<xpath expr="//button[@name='action_cancel']" position="attributes">
+					<!-- <attribute name="invisible">1</attribute> -->
+					<attribute name="attrs">{"invisible":[('state','not in', ['draft','sent','sale','tracking'])]}</attribute>
+				</xpath>
+				<xpath expr="//field[@name='sale_order_template_id']" position="after">
+					<!-- <field name="contact" /> -->
+					<field name="contact_person" />
+					<field name="po_number" />	
+					<field name="typeOfShipment" no_create="true" required="1"/>
+					<field name="ts" invisible="1"/>
+					<field name="shipmentTerms" required="1"/>
+					<field name="st" invisible="1"/>
+					<field name="portOfLoading" required="1"/>
+					<field name="portOfDestination"  required="1"/>
+		
+					<field name="cargoReadyDate"/>
+					<field name="originCountry" required="0"/>
+					<field name="destinationCountry" required="0"/>
+					<field name="originCountry_id" required="1"/>
+					<field name="destinationCountry_id" required="1"/>
+					<field name="is_delivered" readonly="1" />
+					<field name="tracking_id" readonly="1" />
+				</xpath>
+				<xpath expr="//field[@name='payment_term_id']" position="after">
+					<field name="commodityType" required="1"/>
+					<field name="originAddress"/>
+					<field name="originZip"/>
+					<field name="destinationAddress"/>
+					<field name="destinationZip"/>
+					<field name="cargoWeight" attrs="{'invisible':[('ts', '!=', 'FCL')],'required':[('ts','=', 'FCL')]}"/>
+					<field name="totalChargableWeight"/>
+					<!-- <field name="oceanBillOfLading" attrs="{'invisible': [('ts', 'not in', ['FCL', 'LCL'])]}"  />
+                    <field name="awb" attrs="{'invisible': [('ts', 'not in', ['Air Freight', 'Courier Service'])]}" />
+                    <field name="billOfLading" attrs="{'invisible': [('ts', 'not in', ['Road Freight'])]}"    /> -->
+					<field name="invoice_ids" widget="many2many_tags"/>
+					
+	
+					
+				</xpath>
+				<xpath expr="//field[@name='state']" position="after">
+					<field name="new_state" widget="statusbar"/>
+				</xpath>
+				<!-- <xpath expr="//field[@name='state']" position="attributes">
+					<attribute name="attrs">{"invisible":True}</attribute>
+				</xpath> -->
+
+				<xpath expr="//form/sheet/notebook/page[@name='other_information']" position="after">
+
+					<page string="Cargo Details" name="product_information" attrs="{'invisible':[('ts', '=', 'FCL')]}" >
+						<field name="product_line_ids" mode="tree" context="{'default_sale_order_id': active_id,}">
+							<tree editable="bottom">
+								<field name="length"/>
+								<field name="width"/>
+								<field name="height"/>
+								<field name="totalpcs"/>
+								<field name="volume"/>
+								<field name="grossWeight"/>
+								<field name="chargableWeight"/>
+								
+								
+							</tree>
+							</field>
+							<group name="note_group_cargo" col="6" class="mt-2 mt-md-0">
+								 
+                                <group class="oe_subtotal_footer oe_right" colspan="2" name="weight_total">
+                                    <field name="totalChargableWeight"   colspan="2"/>
+                                </group>
+                                <div class="oe_clear"/>
+                            </group>
+                    </page>
+					<page string="Container Details" name="container_details" attrs="{'invisible':[('ts', '!=', 'FCL')]}" >
+						<field name="container_line_ids" mode="tree" context="{'default_sale_order_id': active_id,}">
+							<tree editable="bottom">
+								<field name="typeOfContainer"/>
+								<field name="noOfContainers"/>
+								<field name="temperature" attrs="{'invisible':['|','|',('typeOfContainer','=','1'),('typeOfContainer','=','2'),('typeOfContainer','=','3')]}"/>
+							</tree>
+							</field>
+                    </page>
+
+				
+
+				</xpath>
+
+			</field>
+		</record>
+
+
+		
+		</data>
+</odoo>

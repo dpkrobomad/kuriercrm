@@ -1,0 +1,62 @@
+<template id="kurier_external_layout_standard_2">
+        <div class="page">
+                
+        </div>
+        <div t-attf-class="header" t-att-style="report_header_style">
+            <div class="row" style="padding-bottom: 4px;">
+                <div class="col-2 mb4" style="margin-top: 5px;">
+                    <img t-if="company.logo" t-att-src="image_data_uri(company.logo)"
+                         alt="Logo" style="max-height: 100px;"/>
+                    <img t-if="not company.logo" src="/sale_product_image/static/src/img/logo.png"
+                         style="max-height: 100px;" alt="Logo"/>
+                </div>
+                <div class="col-10 text-center" name="company_address"
+                     style="line-height: 0.5;font-size: 0.7rem !important;">
+                    <h1 style="font-weight: bolder;">
+                        <t t-esc="company.name"/>
+                    </h1>
+                    <p style="font-size: 1rem;font-style: italic;"><i>An ISO 9001 &amp; 39001 Certified Company</i></p>
+                    <span>CR No: <t t-esc="company.company_registry"/></span>
+                    <span>P.O. Box: <t t-esc="company.po_box"/> | <t t-esc="company.city"/>  <t t-esc="company.zip"/></span>
+                    <span><t t-esc="company.street"/></span>
+                    <span><t t-esc="company.street2"/></span>
+                    <span><t t-esc="company.state_id.name"/>, <t t-esc="company.country_id.name"/></span>
+
+                    <span>Tel: <t t-esc="company.phone"/></span>
+                    <p style="margin-bottom: 5px;"></p>
+                    <span t-if="company.email">
+                        Email : <span t-field="company.email"/>
+                    </span>
+                    <span t-if="company.website">
+                        Website : <span t-field="company.website"/>
+                    </span>
+                </div>
+
+            </div>
+            <div class="row zero_min_height">
+                <div class="col-12">
+                    <div/>
+                </div>
+            </div>
+        </div>
+
+        <div t-attf-class="article"  t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+            <div class="pt-2">
+                <!-- This div ensures that the address is not cropped by the header. -->
+                <t t-call="web.address_layout"/>
+            </div>
+            <t t-raw="0"/>
+        </div>
+
+        <div t-attf-class="footer o_standard_footer o_company_#{company.id}_layout">
+            <div class="text-center" style="border-top: 1px solid black;">
+                <ul class="list-inline mb4">
+                    <div t-field="company.report_footer"/>
+                </ul>
+
+                <div t-if="report_type == 'pdf'" class="text-muted">
+                    Page: <span class="page"/> / <span class="topage"/>
+                </div>
+            </div>
+        </div>
+    </template>

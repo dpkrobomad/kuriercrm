@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_deepu_sale_deepu_sale,deepu_sale.deepu_sale,model_deepu_sale_order_line,base.group_user,1,1,1,1
+access_deepu_sale_deepu_sale_tracking,deepu_sale.deepu_sale_tracking,model_deepu_sale_tracking,base.group_user,1,1,1,1
+access_deepu_sale_container,deepu_sale.deepu_container_line,model_deepu_sale_container_line,base.group_user,1,1,1,1
+access_deepu_sale_shipment_container,deepu_sale.deepu_shipmentcontainer,model_deepu_sale_shipmentcontainer,base.group_user,1,1,1,1
+access_deepu_sale_events,deepu_sale.deepu_events_line,model_deepu_sale_shipment_history_line,base.group_user,1,1,1,1
+access_deepu_sale_vessels,deepu_sale.deepu_vessels_line,model_deepu_sale_vessels_line,base.group_user,1,1,1,1
+access_deepu_sale_docs,deepu_sale.deepu_docs_line,model_deepu_sale_docs_line,base.group_user,1,1,1,1
+access_deepu_sale_event_line,deepu_sale.deepu_event_line,model_deepu_sale_events,base.group_user,1,1,1,1
+access_deepu_account_product_line,deepu_sale.deepu_account_product_line,model_deepu_account_order_line,base.group_user,1,1,1,1
+access_deepu_account_container_line,deepu_sale.deepu_account_container_line,model_deepu_account_container_line,base.group_user,1,1,1,1
