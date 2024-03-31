@@ -26,7 +26,7 @@
     'data': [
         'security/ir.model.access.csv',
         'data/sale_data.xml',
-
+        'data/cron_job.xml',
         'views/views.xml',
         'views/sequence.xml',
         'views/tracking.xml',

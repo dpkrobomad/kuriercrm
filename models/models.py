@@ -7,6 +7,9 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.osv import expression
 from odoo.tools import float_is_zero, html_keep_url, is_html_empty
 import requests
+import logging
+_logger = logging.getLogger(__name__)
+
 KURIER_HOST = 'http://127.0.0.1:8000/'
 #KURIER_HOST = 'https://kuriervogel.com/'
 
@@ -379,6 +382,177 @@ class Tracking(models.Model):
         'shipment_id', 
         string='Container Numbers'
     )
+
+    transit_time = fields.Char(string="Transit Time")
+    transit_delay = fields.Char(string="Transit Delay")
+    final_delivery_date = fields.Date(string="Final Delivery Date")
+    final_delivery_place = fields.Char(string="Final Delivery Place")
+    empty_return_date = fields.Char(string="Empty Return Date")
+    gate_out_date = fields.Date(string="Gate Out Date")
+    container_type = fields.Char(string="Container Type")
+    container_teu = fields.Char(string="Container TEU")
+    shipping_line = fields.Char(string="Shipping Line")
+    booking_no = fields.Char(string="Booking Ref. No")
+    co2 = fields.Char(string="CO2 Emission")
+    sailing_status = fields.Char(string="Sailing Status")
+    shipsgo_checking_status = fields.Char(string="Shipsgo Checking Status")
+    is_shipsgo_tracking = fields.Boolean(string="Shipsgo Tracking", default=False)
+    is_tracking_done = fields.Boolean(string="Is Tracking Done" , default=False)
+    BLContainerCount = fields.Integer(string="BL Container Count")
+    blcontainers = fields.One2many(
+        'deepu.tracking.blcontainer', 
+        'shipment_id', 
+        string='BLContainers'
+    )
+    def _fetch_tracking_info(self, container_number):
+        import requests
+        try:
+            response = requests.get(f'https://shipsgo.com/api/ContainerService/GetContainerInfo?authCode=6e98cefbe062fe1906bbf63ce5d74780&requestId={container_number}&mapPoint=true&co2=true&containerType=true')
+            # Assuming the response is in JSON format
+            data = response.json()
+            print(">>>>>>>>>>>data>>>>>>>>>>>>",data,type(data),response.status_code)
+            if response.status_code==200:
+                return (data[0], response.status_code)
+            else:
+                return (data,response.status_code)
+        except requests.RequestException as e:
+            # Handle exceptions such as connection errors, timeouts, etc.
+            # Log the exception or take other appropriate actions
+            _logger.error(f"Failed to fetch tracking info: {e}")
+            # Return None or an empty dict and an error status code to indicate failure
+            return ({}, 500)
+    @api.onchange('container_number')
+    def _onchange_container_number(self):
+        print("onchange executed 1>>>>>>")
+        for rec in self:
+            if rec.container_number:
+                print("onchange executed 2>>>>>>",rec.container_number)
+                # Call your API here
+                response , status_code  = rec._fetch_tracking_info(rec.container_number)
+                print("onchange executed 3>>>>>>",status_code)
+                if status_code == 200:
+                    print("200 true making true>>>>>>")
+                    rec.is_shipsgo_tracking = True
+                else:
+                    print("false making false>>>>>>")
+                    # Handle cases where the API call fails or does not return 200
+                    rec.is_shipsgo_tracking = False
+            else:
+                rec.is_shipsgo_tracking = False
+    def fetch_and_update_tracking_details(self):
+        print('**********************Records with is_shipsgo_tracking True: %s', self.search_count([('sailing_status', '!=', 'Discharged')]))
+        print('**********************Records with is_shipsgo_tracking True: %s', self.search_count([('container_number', '!=', False)]))
+        print('**********************Records with is_shipsgo_tracking True: %s', self.search_count([('empty_return_date', '=', False)]))
+        print('**********************Records with is_shipsgo_tracking True: %s', self.search_count([('is_shipsgo_tracking', '=', True)]))
+        # Assuming you have a field in your model to store the tracking ID or similar
+        tracking_ids = self.search([
+            # ('sailing_status', '!=', 'Discharged'),
+            # ('container_number', '!=', False),  #
+            # ('empty_return_date', '=', False),  
+            ('is_tracking_done', '=', False), 
+            ('is_shipsgo_tracking', '=', True), 
+        ])
+
+        print("Tracking Counts found",len(tracking_ids),type(tracking_ids))
+        for record in tracking_ids:
+            # Make the API call
+            print(">>>>>>>>>>container number>>>>>>>>>",record.container_number)
+            # This is a placeholder URL and parameters. You'll need to replace these with your actual API details
+            data,status_code = self._fetch_tracking_info(record.container_number)
+            print("running >>>>>>> ",status_code,data,status_code)
+            if status_code == 200:
+                actual_departure_str = data.get('DepartureDate')
+                actual_departure = datetime.strptime(actual_departure_str, "%d/%m/%Y").date() if actual_departure_str else None
+            
+                actual_arrival_str = data.get('ArrivalDate')
+                actual_arrival = datetime.strptime(actual_arrival_str,  "%d/%m/%Y").date() if actual_arrival_str else None
+                scheduled_arrival_str = data.get('FirstETA')
+                scheduled_arrival = datetime.strptime(scheduled_arrival_str,  "%d/%m/%Y").date() if scheduled_arrival_str else None
+                gate_out_date_str = data.get('GateOutDate')
+                gate_out_date = datetime.strptime(gate_out_date_str, "%d/%m/%Y").date() if gate_out_date_str else None
+                empty_return_date_str = data.get('EmptyReturnDate')
+                empty_return_date = datetime.strptime(empty_return_date_str, "%d/%m/%Y").date() if empty_return_date_str else None
+                final_delivery_date_str = data.get('FinalDeliveryDate')
+                final_delivery_date = datetime.strptime(final_delivery_date_str, "%d/%m/%Y").date() if final_delivery_date_str else None
+                blcontainers = data.get('Blcontainers',[])
+                vessels = data.get('TSPorts',[])
+                
+
+                v={
+                    "vessel":data.get('Vessel'),
+                    "VesselIMO":data.get('VesselIMO'),
+                    "DepartureDate":data.get('DepartureDate'),
+                    "ArrivalDate":data.get('ArrivalDate'),
+                    "Port":data.get('Port')
+                }
+                vessels.insert(0,v)
+                container_name_list = list()
+                for container in record.blcontainers:
+                    container_name_list.append(container.name)
+                for container in blcontainers:
+                    if container["ContainerCode"] not in container_name_list:
+                        BLGateOutDate_str = container.get('BLGateOutDate')
+                        BLGateOutDate = datetime.strptime(BLGateOutDate_str, "%d/%m/%Y").date() if BLGateOutDate_str else None
+                        BLEmptyReturnDate_str = container.get('BLEmptyReturnDate')
+                        BLEmptyReturnDate = datetime.strptime(BLEmptyReturnDate_str, "%d/%m/%Y").date() if BLEmptyReturnDate_str else None
+                        new_container = self.env['deepu.tracking.blcontainer'].create({
+                            'name': container.get('ContainerCode'),
+                            'ContainerTEU':container.get('ContainerTEU'),
+                            'ContainerType': container.get('ContainerType'),
+                            'BLGateOutDate': BLGateOutDate,
+                            'BLEmptyReturnDate': BLEmptyReturnDate,
+                            'shipment_id': record.id,
+                        })
+                        record.write({
+                            'blcontainers': [(4, new_container.id)]
+                        })
+                        
+                shipsgo_vessel_list = list()
+                for vessel in record.vessels_line_ids:
+                    shipsgo_vessel_list.append(vessel.VesselIMO)
+                
+                for vessel in vessels:
+                    if vessel["VesselIMO"] not in shipsgo_vessel_list:
+                        ArrivalDate_str = vessel.get('ArrivalDate')
+                        ArrivalDate = datetime.strptime(ArrivalDate_str, "%d/%m/%Y").date() if ArrivalDate_str else None
+                        DepartureDate_str = vessel.get('DepartureDate')
+                        DepartureDate = datetime.strptime(DepartureDate_str, "%d/%m/%Y").date() if DepartureDate_str else None
+                        new_vessel = self.env['deepu.sale.vessels.line'].create({
+                            'vessel': vessel.get('Vessel'),
+                            'Port':vessel.get('Port'),
+                            'ArrivalDate': ArrivalDate,
+                            'DepartureDate': DepartureDate,
+                            'VesselIMO': vessel.get('VesselIMO'),
+                            'tracking_id': record.id,
+                        })
+                        record.write({
+                            'vessels_line_ids': [(4, new_vessel.id)]
+                        })
+
+
+ 
+                    
+                record.write({
+                    'sailing_status': data.get('SailingStatus', None),
+                    'shipping_line': data.get('ShippingLine', None),
+                    'container_teu': data.get('ContainerTEU', None),
+                    'container_type': data.get('ContainerType', None),
+                    'gate_out_date':gate_out_date,
+                    'empty_return_date':empty_return_date,
+                    'date_of_delivery': final_delivery_date,
+                    'actual_departure': actual_departure,
+                    'actual_arrival': actual_arrival,
+                    'scheduled_arrival': scheduled_arrival,
+                    'final_delivery_place': data.get('FinalDeliveryPlace', None),
+                    'transit_time': data.get('FormatedTransitTime', None),
+                    'transit_delay': data.get('ETA', None),
+                    'co2': data.get('Co2Emission', None),
+                    'booking_no': data.get('ReferenceNo', None),
+                    'is_shipsgo_tracking': True,
+                    'is_tracking_done': True if empty_return_date else False,
+                    'BLContainerCount': data.get('BLContainerCount',None),
+                    # Update other fields as necessary
+                })
     @api.depends('event_line_ids')
     def NewEventAdded(self):
         
@@ -520,6 +694,24 @@ class Tracking(models.Model):
                     if record.container_numbers:
                         last_container = record.container_numbers.sorted(key='id', reverse=True)[0]
                         record.container_number = last_container.name  # Assuming there's a 'container_number' field in 'deepu.sale.shipmentcontainer'
+        if 'container_number' in vals and not 'is_shipsgo_tracking' in vals:
+            for rec in self:
+                response , status_code  = rec._fetch_tracking_info(rec.container_number)
+                print("onchange executed 3>>>>>>",status_code)
+                if status_code == 200:
+                    print("200 true making true>>>>>>")
+                    rec.is_shipsgo_tracking = True
+                else:
+                    print("false making false>>>>>>")
+                    # Handle cases where the API call fails or does not return 200
+                    rec.is_shipsgo_tracking = False
+                    
+        if 'container_number' in vals and  'is_shipsgo_tracking' in vals and 'empty_return_date' in vals:
+            for rec in self:
+                rec.is_tracking_done = True
+                
+            
+            
         return res
     
     def action_booked(self):
@@ -664,6 +856,19 @@ class ShipmentContainer(models.Model):
     name = fields.Char('Container Number')
     shipment_id = fields.Many2one('deepu.sale.tracking', string='Tracking Number')
 
+class BLContainer(models.Model):
+    _name = 'deepu.tracking.blcontainer'
+    _description = 'BLContainers'
+    
+    name = fields.Char('Container Number')
+    ContainerTEU = fields.Char('ContainerTEU')
+    ContainerType = fields.Char('ContainerType')
+    BLGateOutDate = fields.Char('BLGateOutDate')
+    BLEmptyReturnDate = fields.Char('BLEmptyReturnDate')
+    shipment_id = fields.Many2one('deepu.sale.tracking', string='Tracking Number')
+
+
+
 class ShipmentEvents(models.Model):
     _name = 'deepu.sale.events'
     
@@ -681,12 +886,15 @@ class ShipmentStatusHistory(models.Model):
     comments = fields.Text(string="Comments")
     
     
-    
 class Vessels(models.Model):
     _name = 'deepu.sale.vessels.line'
     tracking_id = fields.Many2one('deepu.sale.tracking', string="Tracking Number",readonly=True,required=True)
     vessel = fields.Char(string="Vessel")	
+    Port = fields.Char(string="Port")	
+    ArrivalDate = fields.Date(string="ArrivalDate")	
+    DepartureDate = fields.Date(string="DepartureDate")	
     voyage= fields.Char(string="Voyage")	
+    VesselIMO= fields.Char(string="VesselIMO")	
     departure= fields.Char(string="Departure")	
     delivery = fields.Char(string="Delivery")
 

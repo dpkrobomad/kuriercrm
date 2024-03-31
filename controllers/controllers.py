@@ -377,7 +377,7 @@ class DeepuSaleController(http.Controller):
                 ev = {"eventId":event.id,"event":event.event.name,"date":event.date,"location":event.location,"comments":event.comments}
                 events.append(ev)
             for v in tracking.vessels_line_ids:
-                vessel = {"vId":v.id,"vessel":v.vessel,"voyage":v.voyage,"departure":v.departure,"delivery":v.delivery}
+                vessel = {"vId":v.id,"vessel":v.vessel,"voyage":v.voyage,"departure":v.departure,"delivery":v.delivery,"Port":v.Port,"ArrivalDate":v.ArrivalDate,"DepartureDate":v.DepartureDate,"VesselIMO":v.VesselIMO}
                 vessels.append(vessel)
             for i in tracking.sale_order_id.product_line_ids:
                 c = {"length":i.length,"width":i.width,"height":i.height,"totalpcs":i.totalpcs,"grossWeight":i.grossWeight,"volume":i.volume,"chargableWeight":i.chargableWeight}
@@ -392,6 +392,10 @@ class DeepuSaleController(http.Controller):
                 encMessage = fernet.encrypt(data.encode())
                 doc = {"docId":d.id,"file_name":d.file_name,"token":encMessage}
                 documents.append(doc)
+            blcontainers=list() 
+            for k in tracking.blcontainers:
+                blcontainer = {"cId":k.id,"containerNumber":k.name,"ContainerTEU":k.ContainerTEU,"ContainerType":k.ContainerType,"BLGateOutDate":k.BLGateOutDate,"BLEmptyReturnDate":k.BLEmptyReturnDate}
+                blcontainers.append(blcontainer)
             originCountryCoords=self.get_coordinates(tracking.sale_order_id.originCountry)    
             destinationCountryCoords=self.get_coordinates(tracking.sale_order_id.destinationCountry)    
             vals = {
@@ -430,6 +434,28 @@ class DeepuSaleController(http.Controller):
                 "invoice":invoice_url,
                 "invoices":invoice_urls,
                 "documents":documents,
+                #shipsgo details
+                "is_transshipment":tracking.is_transshipment,
+                "transit_time":tracking.transit_time,
+                "transit_delay":tracking.transit_delay,
+                "final_delivery_date":tracking.final_delivery_date,
+                "final_delivery_place":tracking.final_delivery_place,
+                "empty_return_date":tracking.empty_return_date,
+                "gate_out_date":tracking.gate_out_date,
+                "container_type":tracking.container_type,
+                "ContainerTEU":tracking.container_teu,
+                "carrier":tracking.shipping_line,
+                "bookingNo":tracking.booking_no,
+                "co2":tracking.co2,
+                "sailing_status":tracking.sailing_status,
+                "shipsgo_checking_status":tracking.shipsgo_checking_status,
+                "LiveMapUrl":tracking.is_shipsgo_tracking,
+                "is_tracking_done":tracking.is_tracking_done,
+                "ContainerNumber":tracking.container_number,
+                "BLContainerCount":tracking.BLContainerCount,
+                "BLContainers":blcontainers
+                
+                
             }
             return {"success":True,"message":"Success","details":vals}
         else:
