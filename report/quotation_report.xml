@@ -81,6 +81,7 @@
                     {
                         font-size:12px;
                     }
+                </style>
                 <h2 class="mt16">
                     <t t-if="not (env.context.get('proforma', False) or is_pro_forma)">
                         <span t-if="doc.state not in ['draft','sent']">Order # </span>
