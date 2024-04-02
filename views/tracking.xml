@@ -190,9 +190,25 @@
                                 <field name="vessels_line_ids" mode="tree" context="{'default_deepu_sale_tracking_id': active_id,}">
                                     <tree editable="bottom">
                                         <field name="vessel"/>
+                                        <field name="VesselIMO"/>
+                                        <field name="Port"/>
+                                        <field name="ArrivalDate"/>
+                                        <field name="DepartureDate"/>
                                         <field name="voyage"/>
                                         <field name="departure"/>
                                         <field name="delivery"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="BL Containers" name="tracking_blcontainers">
+                                <field name="blcontainers" mode="tree" context="{'default_deepu_sale_tracking_id': active_id,}">
+                                    <tree editable="bottom">
+                                        <field name="name"/>
+                                        <field name="ContainerTEU"/>
+                                        <field name="ContainerType"/>
+                                        <field name="BLGateOutDate"/>
+                                        <field name="BLEmptyReturnDate"/>
+            
                                     </tree>
                                 </field>
                             </page>

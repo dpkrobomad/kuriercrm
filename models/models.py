@@ -474,39 +474,45 @@ class Tracking(models.Model):
                 empty_return_date = datetime.strptime(empty_return_date_str, "%d/%m/%Y").date() if empty_return_date_str else None
                 final_delivery_date_str = data.get('FinalDeliveryDate')
                 final_delivery_date = datetime.strptime(final_delivery_date_str, "%d/%m/%Y").date() if final_delivery_date_str else None
-                blcontainers = data.get('Blcontainers',[])
+                blcontainerz = data.get('BLContainers',[])
+                print(blcontainerz)
+                print("checking containers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",type(blcontainerz))
                 vessels = data.get('TSPorts',[])
                 
 
                 v={
-                    "vessel":data.get('Vessel'),
+                    "Vessel":data.get('Vessel'),
                     "VesselIMO":data.get('VesselIMO'),
                     "DepartureDate":data.get('DepartureDate'),
                     "ArrivalDate":data.get('ArrivalDate'),
-                    "Port":data.get('Port')
+                    "Port":data.get('Pol')
                 }
                 vessels.insert(0,v)
                 container_name_list = list()
                 for container in record.blcontainers:
                     container_name_list.append(container.name)
-                for container in blcontainers:
-                    if container["ContainerCode"] not in container_name_list:
-                        BLGateOutDate_str = container.get('BLGateOutDate')
+                for contr in blcontainerz:
+                    print("Running containers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+                    if contr["ContainerCode"] not in container_name_list:
+                        BLGateOutDate_str = contr.get('BLGateOutDate')
                         BLGateOutDate = datetime.strptime(BLGateOutDate_str, "%d/%m/%Y").date() if BLGateOutDate_str else None
-                        BLEmptyReturnDate_str = container.get('BLEmptyReturnDate')
+                        BLEmptyReturnDate_str = contr.get('BLEmptyReturnDate')
                         BLEmptyReturnDate = datetime.strptime(BLEmptyReturnDate_str, "%d/%m/%Y").date() if BLEmptyReturnDate_str else None
                         new_container = self.env['deepu.tracking.blcontainer'].create({
-                            'name': container.get('ContainerCode'),
-                            'ContainerTEU':container.get('ContainerTEU'),
-                            'ContainerType': container.get('ContainerType'),
+                            'name': contr.get('ContainerCode'),
+                            'ContainerTEU':contr.get('ContainerTEU'),
+                            'ContainerType': contr.get('ContainerType'),
                             'BLGateOutDate': BLGateOutDate,
                             'BLEmptyReturnDate': BLEmptyReturnDate,
                             'shipment_id': record.id,
                         })
+                        print("adding containers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",new_container.id,new_container.name)
                         record.write({
                             'blcontainers': [(4, new_container.id)]
                         })
-                        
+                        print("Writing containers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",record.blcontainers)
+                    else:
+                        print("Condition Failed >>>>>>>>>>>>>>>>>>>",container_name_list)  
                 shipsgo_vessel_list = list()
                 for vessel in record.vessels_line_ids:
                     shipsgo_vessel_list.append(vessel.VesselIMO)
@@ -865,7 +871,7 @@ class BLContainer(models.Model):
     ContainerType = fields.Char('ContainerType')
     BLGateOutDate = fields.Char('BLGateOutDate')
     BLEmptyReturnDate = fields.Char('BLEmptyReturnDate')
-    shipment_id = fields.Many2one('deepu.sale.tracking', string='Tracking Number')
+    shipment_id = fields.Many2one('deepu.sale.tracking', string="Tracking Number",readonly=True,required=True)
 
 
 
