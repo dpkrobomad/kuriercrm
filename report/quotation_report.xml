@@ -1,504 +1,473 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-<template id="sale.report_saleorder_document">
-    <t t-call="web.external_layout">
-        <t t-set="doc" t-value="doc.with_context(lang=doc.partner_id.lang)" />
-        <t t-set="forced_vat" t-value="doc.fiscal_position_id.foreign_vat"/> <!-- So that it appears in the footer of the report instead of the company VAT if it's set -->
-        <t t-set="address">
-            <!-- <div t-field="doc.partner_id"
-                t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}' /> -->
-            <!-- <p t-if="doc.partner_id.vat"><t t-esc="doc.company_id.account_fiscal_country_id.vat_label or 'Tax ID'"/>: <span t-field="doc.partner_id.vat"/></p> -->
-        </t>
+    <template id="sale.report_saleorder_document">
+        <t t-call="web.external_layout">
+            <t t-set="doc" t-value="doc.with_context(lang=doc.partner_id.lang)" />
+            <t t-set="forced_vat" t-value="doc.fiscal_position_id.foreign_vat"/>
+            <t t-set="address">
 
-        <!-- <t t-if="doc.partner_shipping_id == doc.partner_invoice_id
-                             and doc.partner_invoice_id != doc.partner_id
-                             or doc.partner_shipping_id != doc.partner_invoice_id">
-            <t t-set="information_block">
-                <strong t-if="doc.partner_shipping_id == doc.partner_invoice_id">Invoicing and Shipping Address:</strong>
-                <strong t-if="doc.partner_shipping_id != doc.partner_invoice_id">Invoicing Address:</strong>
-                <div t-field="doc.partner_invoice_id"
-                t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
-                <t t-if="doc.partner_shipping_id != doc.partner_invoice_id">
-                    <strong>Shipping Address:</strong>
-                    <div t-field="doc.partner_shipping_id"
-                        t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
-                </t>
             </t>
-        </t> -->
-        <div class="page">
-            <div class="oe_structure"/>
-             <br/>
-            <h2 class="mt16">
-                <t t-if="not (env.context.get('proforma', False) or is_pro_forma)">
-                    <span t-if="doc.state not in ['draft','sent']">Order # </span>
-                    <span t-if="doc.state in ['draft','sent']">Quotation # </span>
-                </t>
-                <t t-if="env.context.get('proforma', False) or is_pro_forma">
-                    <span>Pro-Forma Invoice # </span>
-                </t>
-                <span t-field="doc.name"/>
-            </h2>
+            <div class="page">
+                <div class="oe_structure"/>
+                <br/>
+                <h2 class="mt16">
+                    <t t-if="not (env.context.get('proforma', False) or is_pro_forma)">
+                        <span t-if="doc.state not in ['draft','sent']">Order # </span>
+                        <span t-if="doc.state in ['draft','sent']">Quotation # </span>
+                    </t>
+                    <t t-if="env.context.get('proforma', False) or is_pro_forma">
+                        <span>Pro-Forma Invoice # </span>
+                    </t>
+                    <span t-field="doc.name"/>
+                </h2>
 
-            <div class="row mt32 mb32" id="informations">
-                <div t-if="doc.client_order_ref" class="col-auto col-3 mw-100 mb-2">
-                    <strong>Your Reference:</strong>
-                    <p class="m-0" t-field="doc.client_order_ref"/>
+                <div class="row mt32 mb32" id="informations">
+                    <div t-if="doc.client_order_ref" class="col-auto col-3 mw-100 mb-2">
+                        <strong>Your Reference:</strong>
+                        <p class="m-0" t-field="doc.client_order_ref"/>
+                    </div>
+
+                    <div t-if="doc.validity_date and doc.state in ['draft', 'sent']" class="col-auto col-3 mw-100 mb-2" name="expiration_date">
+                        <strong>Expiration:</strong>
+                        <p class="m-0" t-field="doc.validity_date"/>
+                    </div>
+
                 </div>
-                <!-- <div t-if="doc.date_order and doc.state not in ['draft','sent']" class="col-auto col-3 mw-100 mb-2">
-                    <strong>Order Date:</strong>
-                    <p class="m-0" t-field="doc.date_order"/>
-                </div> -->
-                <!-- <div t-if="doc.date_order and doc.state in ['draft','sent']" class="col-auto col-3 mw-100 mb-2">
-                    <strong>Quotation Date:</strong>
-                    <p class="m-0"> <strong>Quotation Date:</strong> <span class="m-0"  t-field="doc.date_order" t-options='{"widget": "date"}'/></p>
-                    <p class="m-0" t-field="doc.date_order" t-options='{"widget": "date"}'/>
-                </div> -->
-                <div t-if="doc.validity_date and doc.state in ['draft', 'sent']" class="col-auto col-3 mw-100 mb-2" name="expiration_date">
-                    <strong>Expiration:</strong>
-                    <p class="m-0" t-field="doc.validity_date"/>
-                </div>
-                <!-- <div t-if="doc.user_id.name" class="col-auto col-3 mw-100 mb-2">
-                    <strong>Salesperson:</strong>
-                    <p class="m-0" t-field="doc.user_id"/>
-                </div> -->
+
+                <br/>
+
+                <t t-set="display_discount" t-value="any(l.discount for l in doc.order_line)"/>
+                <h4 style="color: green;">Shipment Details - <span t-field="doc.typeOfShipment" />
+ From <span t-field="doc.originCountry" />
+ to <span t-field="doc.destinationCountry" />
+        </h4>
+        <div class="row">
+
+
+            <div class="col-6">
+                <table class="table table-sm o_main_table">
+
+                    <tbody style="display: table-row-group">
+                        <tr/>
+                        <tr class="mb-0">
+                            <td>
+                                <strong>Client</strong>
+                            </td>
+                            <td>
+                                <p t-field="doc.partner_invoice_id" />
+                            </td>
+
+                        </tr>
+                        <tr class="mb-0">
+                            <td>
+                                <strong>Contact</strong>
+                            </td>
+                            <td>
+                                <p t-if="doc.contact_person" t-field="doc.contact_person"></p>
+                            </td>
+
+                        </tr>
+                        <tr class="mb-0">
+                            <td>
+                                <strong>PO Number</strong>
+                            </td>
+                            <td t-if="doc.po_number">
+                                <p t-field="doc.po_number" />
+                            </td>
+
+                        </tr>
+                        <tr class="mb-0" t-if="doc.date_order and doc.state in ['draft','sent']">
+                            <td>
+                                <strong>Quotation Date:</strong>
+                            </td>
+                            <td>
+                                <p t-field="doc.date_order" t-options='{"widget": "date"}' />
+                            </td>
+                        </tr>
+                        <tr class="mb-0" t-if="doc.validity_date and doc.state in ['draft', 'sent']">
+                            <td>
+                                <strong>Rate Validity</strong>
+                            </td>
+                            <td>
+                                <p class="m-0" t-field="doc.validity_date"/>
+                            </td>
+                        </tr>
+                        <tr class="mb-0">
+                            <td>
+                                <strong>Shipment Type</strong>
+                            </td>
+                            <td>
+                                <p t-field="doc.typeOfShipment"/>
+                            </td>
+                        </tr>
+                        <tr class="mb-0">
+                            <td>
+                                <strong>Shipment Terms</strong>
+                            </td>
+                            <td>
+                                <p t-field="doc.shipmentTerms" />
+                            </td>
+                        </tr>
+                        <tr class="mb-0">
+                            <td>
+                                <strong>Commodity</strong>
+                            </td>
+                            <td>
+                                <p t-field="doc.commodityType" />
+                            </td>
+                        </tr>
+                        <tr class="mb-0">
+                            <td>
+                                <strong>Port of Loading</strong>
+                            </td>
+                            <td t-if="doc.portOfLoading">
+                                <p t-field="doc.portOfLoading" />
+                            </td>
+
+                        </tr>
+                        <tr class="mb-0">
+                            <td>
+                                <strong>Port of Destination</strong>
+                            </td>
+                            <td t-if="doc.portOfDestination">
+                                <p t-field="doc.portOfDestination" />
+                            </td>
+                        </tr>
+                        <tr/>
+
+
+                    </tbody>
+                </table>
             </div>
 
-            <br/>
-            <!-- Is there a discount on at least one line? -->
-            <t t-set="display_discount" t-value="any(l.discount for l in doc.order_line)"/>
-                    <h4 style="color: green;">Shipment Details - <span t-field="doc.typeOfShipment" /> From <span t-field="doc.originCountry" /> to <span t-field="doc.destinationCountry" /> </h4>
-                    <div class="row">
-              
-                        
-                        <div class="col-6">
-                            <table class="table table-sm o_main_table">
+            <div class="col-6">
+                <br/>
+                <table t-if="doc.ts !='FCL'" class="table table-sm o_main_table">
+                    <thead style="display: table-row-group">
 
-                                <tbody style="display: table-row-group">
-                                    <tr/>
-                                    <tr  class="mb-0"  >
-                                        <td><strong>Client</strong></td>
-                                        <td><p  t-field="doc.partner_invoice_id" /></td>
-                                        <!-- <td><p  t-field="doc.date_order"  /></td> -->
-                                    </tr>
-                                    <tr  class="mb-0"  >
-                                        <td><strong>Contact</strong></td>
-                                        <td><p t-if="doc.contact_person" t-field="doc.contact_person"></p></td>
-                                        
-                                    </tr>
-                                    <tr  class="mb-0"  >
-                                        <td><strong>PO Number</strong></td>
-                                        <td t-if="doc.po_number"><p  t-field="doc.po_number" /></td>
-                                        <!-- <td><p  t-field="doc.date_order"  /></td> -->
-                                    </tr>
-                                    <tr  class="mb-0" t-if="doc.date_order and doc.state in ['draft','sent']" >
-                                        <td><strong>Quotation Date:</strong></td>
-                                        <td><p  t-field="doc.date_order" t-options='{"widget": "date"}' /></td>
-                                    </tr>
-                                    <tr  class="mb-0" t-if="doc.validity_date and doc.state in ['draft', 'sent']" >
-                                        <td><strong>Rate Validity</strong></td>
-                                        <td><p class="m-0" t-field="doc.validity_date"/></td>
-                                    </tr>
-                                    <tr  class="mb-0">
-                                        <td><strong>Shipment Type</strong></td>
-                                        <td><p t-field="doc.typeOfShipment"/></td>
-                                    </tr>
-                                    <tr  class="mb-0">
-                                        <td><strong>Shipment Terms</strong></td>
-                                        <td><p t-field="doc.shipmentTerms" /></td>
-                                    </tr>
-                                    <tr  class="mb-0">
-                                        <td><strong>Commodity</strong></td>
-                                        <td><p t-field="doc.commodityType" /></td>
-                                    </tr>
-                                    <tr  class="mb-0">
-                                        <td><strong>Port of Loading</strong></td>
-                                        <td t-if="doc.portOfLoading"><p t-field="doc.portOfLoading" /> </td>
-                                       
-                                    </tr>
-                                    <tr  class="mb-0">
-                                        <td><strong>Port of Destination</strong></td>
-                                        <td t-if="doc.portOfDestination" ><p t-field="doc.portOfDestination" /></td>
-                                    </tr>
-                                    <tr/>
-
-                                    
-                                </tbody>
-                            </table>
-                        </div>
-                    
-                   <div class="col-6">
-                        <br/>
-                        <table t-if="doc.ts !='FCL'" class="table table-sm o_main_table">
-                            <thead style="display: table-row-group">
-                                
-                                <tr  class="mb-0 text-right"  >
-                                    <td><strong>L(CM)</strong></td>
-                                    <td><strong>W(CM)</strong></td>
-                                    <td><strong>H(CM)</strong></td>
-                                    <td><strong>Pieces</strong></td>
-                                    <td><strong>VW/CBM</strong></td>
-                                    <td><strong>GW</strong></td>
-                                    <td><strong>CW</strong></td>
-                                </tr>
-                            </thead>
-                            <tbody class="sale_tbody">
-                                <t t-foreach="doc.product_line_ids" t-as="pline">
-                                    <tr  class="mb-0 text-right"   >
-                                        <td><span t-field="pline.length" /></td>
-                                        <td><span t-field="pline.width" /></td>
-                                        <td><span t-field="pline.height" /></td>
-                                        <td><span t-field="pline.totalpcs" /></td>
-                                        <td><span t-field="pline.volume" /></td>
-                                        <td><span t-field="pline.grossWeight" /></td>
-                                        <td><span t-field="pline.chargableWeight" /></td>
-                                    </tr>
-                                </t>
-                                
-                            </tbody>
-                            
-                            <tfoot>
-                                 <tr  class="mb-0 text-right"  >
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td ></td>
-                                    <td><strong>Total CW</strong></td>
-                                    <td><span t-field="doc.totalChargableWeight" /></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-
-                        <!-- FCL table  -->
-                        <table t-if="doc.ts =='FCL'" class="table table-sm o_main_table">
-                            <thead style="display: table-row-group">
-                                <tr  class="mb-0 text-right"  >
-                                    <td><strong>Container Type</strong></td>
-                                    <td><strong>No.s</strong></td>
-                                    <td><strong>Temperature</strong></td>
-                                </tr>
-                            </thead>
-                            <tbody class="sale_tbody">
-                                <t t-foreach="doc.container_line_ids" t-as="sealine">
-                                    <tr  class="mb-0 text-right"   >
-                                        <td><span t-field="sealine.typeOfContainer" /></td>
-                                        <td><span t-field="sealine.noOfContainers" /></td>
-                                        <td t-if="sealine.typeOfContainer =='4'"><span t-field="sealine.temperature" /></td>
-                                    </tr>
-                                </t>
-                                
-                            </tbody>
-                            
-                            <tfoot>
-                                <hr/>
-                                 <tr  class="mb-0 text-right"  >
-                                    <td >Total Weight</td>
-                                    <td><strong t-field="doc.cargoWeight"/></td>
-                                    <!-- <td ></td> -->
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-
-            <!-- <div class="row">
-                <div class="col-4">
-                    <table class="table table-sm o_main_table">
-                        <thead style="display: table-row-group">
-                            <tr  class="mb-0"  >
-                                <td><strong>Client</strong></td>
-                               
-                            </tr>
-                            <tr  class="mb-0"  >
-                                <td><strong>Contact</strong></td>
-                               
-                            </tr>
-                            <tr  class="mb-0" t-if="doc.date_order and doc.state in ['draft','sent']" >
-                                <td><strong>Quotation Date:</strong></td>
-                                <td><p  t-field="doc.date_order" t-options='{"widget": "date"}' /></td>
-                            </tr>
-                            <tr  class="mb-0" t-if="doc.validity_date and doc.state in ['draft', 'sent']" >
-                                <td><strong>Rate Validity</strong></td>
-                                <td><p class="m-0" t-field="doc.validity_date"/></td>
-                            </tr>
-                            <tr  class="mb-0">
-                                <td><strong>Shipment Type</strong></td>
-                                <td><p t-field="doc.typeOfShipment"/></td>
-                            </tr>
-                            <tr  class="mb-0">
-                                <td><strong>Shipment Terms</strong></td>
-                                <td><p t-field="doc.shipmentTerms" /></td>
-                            </tr>
-                            <tr  class="mb-0">
-                                <td><strong>Commodity</strong></td>
-                                <td><p t-field="doc.commodityType" /></td>
-                            </tr>
-                            
-                        </thead>
-                    </table>
-                </div>
-                <div class="col-8">
-                    <table class="table table-sm o_main_table">
-                        <thead style="display: table-row-group">
-                            <tr  class="mb-0"  >
-                                <td><strong>L(CM)</strong></td>
-                                <td><strong>W(CM)</strong></td>
-                                <td><strong>H(CM)</strong></td>
-                                <td><strong>Pieces</strong></td>
-                                <td ><strong>VW</strong></td>
-                                
-                                <td><strong>GW</strong></td>
-                                <td><strong>CW</strong></td>
-                            </tr>
-                        </thead>
-                        <tbody class="sale_tbody">
-                             <t t-foreach="doc.product_line_ids" t-as="pline">
-                                <tr  class="mb-0"  >
-                                    <td><span t-field="pline.length" /></td>
-                                    <td><span t-field="pline.width" /></td>
-                                    <td><span t-field="pline.height" /></td>
-                                    <td><span t-field="pline.totalpcs" /></td>
-                                    <td ><span t-field="pline.volume" /></td>
-                                    
-                                    <td><span t-field="pline.grossWeight" /></td>
-                                    <td><span t-field="pline.chargableWeight" /></td>
-                                </tr>
-                             </t>
-                            
-                        </tbody>
-                            
-                        <tfoot>
-                                 <tr  class="mb-0"  >
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                  
-                                    <td ></td>
-                                    <td><strong>Total CW</strong></td>
-                                    <td><span t-field="doc.totalChargableWeight" /></td>
-                                </tr>
-                        </tfoot>
-                    </table>
-                </div>
-
-            </div> -->
-
-            <table class="table table-sm o_main_table">
-                <!-- In case we want to repeat the header, remove "display: table-row-group" -->
-                <thead style="display: table-row-group">
-                    <h4 style="color: green;">Charges</h4>
-                    <tr>
-                        <th name="th_description" class="text-left">Description</th>
-                        <th name="th_quantity" class="text-right">Quantity</th>
-                        <th name="th_priceunit" class="text-right">Unit Price</th>
-                        <th name="th_discount" t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line">
-                            <span>Disc.%</span>
-                        </th>
-                        <!-- <th name="th_taxes" class="text-right">Taxes</th> -->
-                        <th name="th_subtotal" class="text-right">
-                            <span groups="account.group_show_line_subtotals_tax_excluded">Amount</span>
-                            <span groups="account.group_show_line_subtotals_tax_included">Total Price</span>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="sale_tbody">
-
-                    <t t-set="current_subtotal" t-value="0"/>
-
-                    <t t-foreach="doc.order_line" t-as="line">
-
-                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
-                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
-
-                        <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
-                            <t t-if="not line.display_type">
-                                <td name="td_name"><span t-field="line.name"/></td>
-                                <td name="td_quantity" class="text-right">
-                                    <span t-field="line.product_uom_qty"/>
-                                    <span t-field="line.product_uom"/>
-                                </td>
-                                <td name="td_priceunit" class="text-right">
-                                    <span t-field="line.price_unit"/>
-                                </td>
-                                <td t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line">
-                                    <span t-field="line.discount"/>
-                                </td>
-                                <!-- <td name="td_taxes" class="text-right">
-                                    <span t-esc="', '.join(map(lambda x: (x.description or x.name), line.tax_id))"/>
-                                </td> -->
-                                <td name="td_subtotal" class="text-right o_price_total">
-                                    <span t-field="line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
-                                    <span t-field="line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
-                                </td>
-                            </t>
-                            <t t-if="line.display_type == 'line_section'">
-                                <td name="td_section_line" colspan="99">
-                                    <span t-field="line.name"/>
-                                </td>
-                                <t t-set="current_section" t-value="line"/>
-                                <t t-set="current_subtotal" t-value="0"/>
-                            </t>
-                            <t t-if="line.display_type == 'line_note'">
-                                <td name="td_note_line" colspan="99">
-                                    <span t-field="line.name"/>
-                                </td>
-                            </t>
+                        <tr class="mb-0 text-right">
+                            <td>
+                                <strong>L(CM)</strong>
+                            </td>
+                            <td>
+                                <strong>W(CM)</strong>
+                            </td>
+                            <td>
+                                <strong>H(CM)</strong>
+                            </td>
+                            <td>
+                                <strong>Pieces</strong>
+                            </td>
+                            <td>
+                                <strong>VW/CBM</strong>
+                            </td>
+                            <td>
+                                <strong>GW</strong>
+                            </td>
+                            <td>
+                                <strong>CW</strong>
+                            </td>
                         </tr>
-
-                        <t t-if="current_section and (line_last or doc.order_line[line_index+1].display_type == 'line_section')">
-                            <tr class="is-subtotal text-right">
-                                <td name="td_section_subtotal" colspan="99">
-                                    <strong class="mr16">Subtotal</strong>
-                                    <span
-                                        t-esc="current_subtotal"
-                                        t-options='{"widget": "monetary", "display_currency": doc.pricelist_id.currency_id}'
-                                    />
+                    </thead>
+                    <tbody class="sale_tbody">
+                        <t t-foreach="doc.product_line_ids" t-as="pline">
+                            <tr class="mb-0 text-right">
+                                <td>
+                                    <span t-field="pline.length" />
+                                </td>
+                                <td>
+                                    <span t-field="pline.width" />
+                                </td>
+                                <td>
+                                    <span t-field="pline.height" />
+                                </td>
+                                <td>
+                                    <span t-field="pline.totalpcs" />
+                                </td>
+                                <td>
+                                    <span t-field="pline.volume" />
+                                </td>
+                                <td>
+                                    <span t-field="pline.grossWeight" />
+                                </td>
+                                <td>
+                                    <span t-field="pline.chargableWeight" />
                                 </td>
                             </tr>
                         </t>
-                    </t>
-                </tbody>
-            </table>
 
-            <div class="clearfix" name="so_total_summary">
-                <div id="total" class="row" name="total">
-                    <div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ml-auto">
-                        <table class="table table-sm">
-                            <!-- Tax totals -->
-                            <t t-set="tax_totals" t-value="json.loads(doc.tax_totals_json)"/>
-                            <t t-call="account.document_tax_totals"/>
-                        </table>
-                    </div>
-                </div>
+                    </tbody>
+
+                    <tfoot>
+                        <tr class="mb-0 text-right">
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td ></td>
+                            <td>
+                                <strong>Total CW</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.totalChargableWeight" />
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <!-- FCL table  -->
+                <table t-if="doc.ts =='FCL'" class="table table-sm o_main_table">
+                    <thead style="display: table-row-group">
+                        <tr class="mb-0 text-right">
+                            <td>
+                                <strong>Container Type</strong>
+                            </td>
+                            <td>
+                                <strong>No.s</strong>
+                            </td>
+                            <td>
+                                <strong>Temperature</strong>
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody class="sale_tbody">
+                        <t t-foreach="doc.container_line_ids" t-as="sealine">
+                            <tr class="mb-0 text-right">
+                                <td>
+                                    <span t-field="sealine.typeOfContainer" />
+                                </td>
+                                <td>
+                                    <span t-field="sealine.noOfContainers" />
+                                </td>
+                                <td t-if="sealine.typeOfContainer =='4'">
+                                    <span t-field="sealine.temperature" />
+                                </td>
+                            </tr>
+                        </t>
+
+                    </tbody>
+
+                    <tfoot>
+                        <hr/>
+                        <tr class="mb-0 text-right">
+                            <td >Total Weight</td>
+                            <td>
+                                <strong t-field="doc.cargoWeight"/>
+                            </td>
+
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
-
-            <div t-if="doc.signature" class="mt32 ml64 mr4" name="signature">
-                <div class="offset-8">
-                    <strong>Signature</strong>
-                </div>
-                <div class="offset-8">
-                    <img t-att-src="image_data_uri(doc.signature)" style="max-height: 4cm; max-width: 8cm;"/>
-                </div>
-                <div class="offset-8 text-center">
-                    <p t-field="doc.signed_by"/>
-                </div>
-            </div>
-
-            <div class="oe_structure"/>
-
-            <p t-field="doc.note" />
-            <p t-if="not is_html_empty(doc.payment_term_id.note)">
-                <span t-field="doc.payment_term_id.note"/>
-            </p>
-            <p id="fiscal_position_remark" t-if="doc.fiscal_position_id and not is_html_empty(doc.fiscal_position_id.sudo().note)">
-                <strong>Fiscal Position Remark:</strong>
-                <span t-field="doc.fiscal_position_id.sudo().note"/>
-            </p>
         </div>
-        <p style="page-break-before:always;"> </p> 
-         <div class="page">
-            <div class="oe_structure"/>
-            <div class="o_readonly">
-                <br/>
-                <br/>
-                <br/>
-                <h5>TERMS &amp; CONDITIONS</h5>
-                    <ul>
-                        <li>Foreign currencies are converted according to daily exchange rate.</li>
-                        <li>Actual fx.rate may vary based on the shipment execution date.</li>
-                        <li>For Air freight /Courrier &amp; LCL shipments the price may vary based on the final weight and the
+
+        <table class="table table-sm o_main_table">
+            <thead style="display: table-row-group">
+                <h4 style="color: green;">Charges</h4>
+                <tr>
+                    <th name="th_description" class="text-left">Description</th>
+                    <th name="th_quantity" class="text-right">Quantity</th>
+                    <th name="th_priceunit" class="text-right">Unit Price</th>
+                    <th name="th_discount" t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line">
+                        <span>Disc.%</span>
+                    </th>
+                    <th name="th_subtotal" class="text-right">
+                        <span groups="account.group_show_line_subtotals_tax_excluded">Amount</span>
+                        <span groups="account.group_show_line_subtotals_tax_included">Total Price</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="sale_tbody">
+
+                <t t-set="current_subtotal" t-value="0"/>
+
+                <t t-foreach="doc.order_line" t-as="line">
+
+                    <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                    <t t-set="current_subtotal" t-value="current_subtotal + line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
+
+                    <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
+                        <t t-if="not line.display_type">
+                            <td name="td_name">
+                                <span t-field="line.name"/>
+                            </td>
+                            <td name="td_quantity" class="text-right">
+                                <span t-field="line.product_uom_qty"/>
+                                <span t-field="line.product_uom"/>
+                            </td>
+                            <td name="td_priceunit" class="text-right">
+                                <span t-field="line.price_unit"/>
+                            </td>
+                            <td t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line">
+                                <span t-field="line.discount"/>
+                            </td>
+                            <td name="td_subtotal" class="text-right o_price_total">
+                                <span t-field="line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                                <span t-field="line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
+                            </td>
+                        </t>
+                        <t t-if="line.display_type == 'line_section'">
+                            <td name="td_section_line" colspan="99">
+                                <span t-field="line.name"/>
+                            </td>
+                            <t t-set="current_section" t-value="line"/>
+                            <t t-set="current_subtotal" t-value="0"/>
+                        </t>
+                        <t t-if="line.display_type == 'line_note'">
+                            <td name="td_note_line" colspan="99">
+                                <span t-field="line.name"/>
+                            </td>
+                        </t>
+                    </tr>
+
+                    <t t-if="current_section and (line_last or doc.order_line[line_index+1].display_type == 'line_section')">
+                        <tr class="is-subtotal text-right">
+                            <td name="td_section_subtotal" colspan="99">
+                                <strong class="mr16">Subtotal</strong>
+                                <span t-esc="current_subtotal" t-options='{"widget": "monetary", "display_currency": doc.pricelist_id.currency_id}'
+                                    />
+</td>
+</tr>
+</t>
+</t>
+</tbody>
+</table>
+
+<div class="clearfix" name="so_total_summary">
+                                    <div id="total" class="row" name="total">
+                                        <div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ml-auto">
+                                            <table class="table table-sm">
+                                                <t t-set="tax_totals" t-value="json.loads(doc.tax_totals_json)"/>
+                                                <t t-call="account.document_tax_totals"/>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div t-if="doc.signature" class="mt32 ml64 mr4" name="signature">
+                                    <div class="offset-8">
+                                        <strong>Signature</strong>
+                                    </div>
+                                    <div class="offset-8">
+                                        <img t-att-src="image_data_uri(doc.signature)" style="max-height: 4cm; max-width: 8cm;"/>
+                                    </div>
+                                    <div class="offset-8 text-center">
+                                        <p t-field="doc.signed_by"/>
+                                    </div>
+                                </div>
+
+                                <div class="oe_structure"/>
+
+                                <p t-field="doc.note" />
+                                <p t-if="not is_html_empty(doc.payment_term_id.note)">
+                                    <span t-field="doc.payment_term_id.note"/>
+                                </p>
+                                <p id="fiscal_position_remark" t-if="doc.fiscal_position_id and not is_html_empty(doc.fiscal_position_id.sudo().note)">
+                                    <strong>Fiscal Position Remark:</strong>
+                                    <span t-field="doc.fiscal_position_id.sudo().note"/>
+                                </p>
+                            </div>
+                            <p style="page-break-before:always;"></p>
+                            <div class="page">
+                                <div class="oe_structure"/>
+                                <div class="o_readonly">
+                                    <br/>
+                                    <br/>
+                                    <br/>
+                                    <h5>TERMS &amp; CONDITIONS</h5>
+                                    <ul>
+                                        <li>Foreign currencies are converted according to daily exchange rate.</li>
+                                        <li>Actual fx.rate may vary based on the shipment execution date.</li>
+                                        <li>For Air freight /Courrier &amp; LCL shipments the price may vary based on the final weight and the
                         dimensions that we receives from the Carrier.</li>
-                        <li>The volumetric calculation for Airfreight is cm (L*W*H /6000) &amp; for Courrier is
+                                        <li>The volumetric calculation for Airfreight is cm (L*W*H /6000) &amp; for Courrier is
                         cm ( L*W*H /5000).</li>
-                        <li>Customs Duty &amp; Applicable VAT will be charged as per actual receipts.</li>
-                        <li>Above rates does not include insurance charges, storage charges and packing charges &amp;
+                                        <li>Customs Duty &amp; Applicable VAT will be charged as per actual receipts.</li>
+                                        <li>Above rates does not include insurance charges, storage charges and packing charges &amp;
                         Inspections charges, which might can occur and will be charged accordingly.</li>
-                        <li>In case of any damage / Pilferage / lost, KurierVogel LLC will not take any responsibility If cargo
+                                        <li>In case of any damage / Pilferage / lost, KurierVogel LLC will not take any responsibility If cargo
                         is not insured.</li>
-                        <li>Insurance can be provided by KurierVogel upon the request.</li>
-                        <li>Scope of Services: KurierVogel agrees to provide freight forwarding services as specified in the
+                                        <li>Insurance can be provided by KurierVogel upon the request.</li>
+                                        <li>Scope of Services: KurierVogel agrees to provide freight forwarding services as specified in the
                         quotation, including but not limited to air freight, sea freight, or land freight, as applicable.</li>
-                        <li>Any GRI,PSS,WRS will be notified to the customer with the shipping line notifications and the
+                                        <li>Any GRI,PSS,WRS will be notified to the customer with the shipping line notifications and the
                         charges.</li>
-                        <li>For the import shipments if the original documents of the shipment is not available we will be
+                                        <li>For the import shipments if the original documents of the shipment is not available we will be
                         keeping deposit of AED 1070/- and there is 1 month time to submit the original docs.</li>
-                        <li>KurierVogel reserves the right to adjust pricing in the event of unforeseen circumstances or
+                                        <li>KurierVogel reserves the right to adjust pricing in the event of unforeseen circumstances or
                         changes to the scope of services.</li>
-                        <li>Booking and Documentation: The customer is responsible for providing accurate and complete
+                                        <li>Booking and Documentation: The customer is responsible for providing accurate and complete
                         information required for booking and documentation purposes. Any discrepancies or delays
                         resulting from inaccurate information provided by the customer may incur additional charges.</li>
-                        <li>Liability: While KurierVogel takes all necessary precautions to ensure the safe and timely
+                                        <li>Liability: While KurierVogel takes all necessary precautions to ensure the safe and timely
                         delivery of goods, KurierVogel shall not be liable for any loss, damage, or delay caused by
                         circumstances beyond our control, including but not limited to acts of nature, strikes, or
                         government regulations.</li>
-                        <li>Claims: Any claims for loss or damage to goods must be submitted in writing to KurierVogel
+                                        <li>Claims: Any claims for loss or damage to goods must be submitted in writing to KurierVogel
                         within the timeframe specified in the applicable transport document. Claims will be handled
                         in accordance with applicable laws and regulations, if the customer has insured for their cargo.</li>
-                        <li>Carriers and Freight Forwarders liability is limited as per the terms and conditions of the Bill of
+                                        <li>Carriers and Freight Forwarders liability is limited as per the terms and conditions of the Bill of
                         Lading and NAFL trading conditions. Above rates are valid for Non-Hazardous cargo/Stackable
                         and does not apply for perishable and over size cargo until and unless if it is not specified in
                         the quotation.</li>
-                        <li>Force majeure : KurierVogel shall not be liable for any delays, failures. or inability to perform
+                                        <li>Force majeure : KurierVogel shall not be liable for any delays, failures. or inability to perform
                         its obligations under this agreement due to circumstances beyond its reasonable control,
                         including but not limited to act of God, War, terrorism, Strikes, natural disasters, governmental
                         actions, or any other events classified as force majeure.</li>
-                    </ul>
-                <br/>
-                <br/>
-                <div class="row">
-                    <div class="col-6">
-                        <h5>Payment Information</h5>
-                        <p> KurierVogel Freight broker LLC<br/>
+                                    </ul>
+                                    <br/>
+                                    <br/>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <h5>Payment Information</h5>
+                                            <p> KurierVogel Freight broker LLC<br/>
                             ADCB Bank, Al Riggha Road Branch<br/>
                             Account number- (AED ) 12327224920001<br/>
                             IBAN No: AE920030012327224920001
-                        </p>
-                        
-                    </div>
-                    <div class="col-6 text-right" >
-                        <h5>Contact Information</h5>
-                         <p> Kurier Vogel Freight Broker LLC,<br/>
+                                    </p>
+
+                                </div>
+                                <div class="col-6 text-right">
+                                    <h5>Contact Information</h5>
+                                    <p> Kurier Vogel Freight Broker LLC,<br/>
                                 Al Fajer Complex, 1st Floor,<br/>
                                 Office  No. 105/14, P.O. Box 124432,<br/>
                                 Oud Metha,Dubai, United Arab Emirates. <br/>
-                                <br/>
+                        <br/>
 
                                 Land Phone # +97146658799 <br/>
                                 Web : www.kuriervogel.com
 
-                        </p>
-                    </div>
+                    </p>
                 </div>
-                    <hr/>
-                    
-                    
-                    
-               
             </div>
-                <!--
-                <span style="font-size: 10pt"></span></p><p><span style="font-size: 10pt">*Foreign currencies&nbsp;are&nbsp;converted&nbsp;according to the daily exchange&nbsp;rate.</span></p><p><span style="font-size: 10pt">*Actual fx.rate may&nbsp;vary based&nbsp;on the&nbsp;shipment execution&nbsp;date</span></p><p><span style="font-size: 10pt">*Customs&nbsp;Duty &amp; Applicable&nbsp;VAT will&nbsp;be charged as per actual receipt.</span></p><p><span style="font-size: 10pt">*Above rates do not&nbsp;include marine insurance&nbsp;storage&nbsp;and packing</span></p><p><span style="font-size: 10pt">*Above rates&nbsp;are&nbsp;valid for&nbsp;Non-Hazardous cargo/Stackable and&nbsp;do not&nbsp;apply&nbsp;for perishable&nbsp;and oversize cargo</span></p><p><span style="font-size: 10pt">*Quotation&nbsp;does not&nbsp;include any&nbsp;storage&nbsp;and any other&nbsp;charges&nbsp;which may be incurred through circumstances beyond our control</span><br></p></div> -->
+            <hr/>
+
+
+
+
         </div>
-    </t>
+    </div>
+</t>
 </template>
 
 
 <template id="report_saleorder">
-    <t t-call="web.html_container">
-        <t t-foreach="docs" t-as="doc">
-            <t t-call="sale.report_saleorder_document" t-lang="doc.partner_id.lang"/>
-        </t>
+<t t-call="web.html_container">
+    <t t-foreach="docs" t-as="doc">
+        <t t-call="sale.report_saleorder_document" t-lang="doc.partner_id.lang"/>
     </t>
+</t>
 </template>
 
 <template id="report_saleorder_pro_forma">
-    <t t-call="web.html_container">
-        <t t-set="is_pro_forma" t-value="True"/>
-        <t t-set="docs" t-value="docs.with_context(proforma=True)"/>
-        <t t-foreach="docs" t-as="doc">
-            <t t-call="sale.report_saleorder_document" t-lang="doc.partner_id.lang"/>
-        </t>
+<t t-call="web.html_container">
+    <t t-set="is_pro_forma" t-value="True"/>
+    <t t-set="docs" t-value="docs.with_context(proforma=True)"/>
+    <t t-foreach="docs" t-as="doc">
+        <t t-call="sale.report_saleorder_document" t-lang="doc.partner_id.lang"/>
     </t>
+</t>
 </template>
 
 </odoo>
