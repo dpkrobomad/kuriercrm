@@ -127,7 +127,7 @@
                         </div>
                     
                    <div class="col-6">
-         
+                        <br/>
                         <table t-if="doc.ts !='FCL'" class="table table-sm o_main_table">
                             <thead style="display: table-row-group">
                                 
@@ -400,6 +400,7 @@
          <div class="page">
             <div class="oe_structure"/>
             <div class="o_readonly">
+                <br/>
                 <br/>
                 <br/>
                 <h5>TERMS &amp; CONDITIONS</h5>
