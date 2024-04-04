@@ -107,7 +107,15 @@
                 </div>
 
                 <br/>
+                <p>
+                Dear Customer,</p>
 
+<p>Good day to you..!!</p>
+
+<p>Thank you for considering KurierVogel for your freight forwarding needs. We are pleased to provide you with the below quotation for our services</p>
+
+<p>If you have any questions or require further clarification, please do not hesitate to contact us. We look forward to the opportunity to serve you and assist with your logistics requirements.
+                </p>
                 <t t-set="display_discount" t-value="any(l.discount for l in doc.order_line)"/>
                 <h4 style="color: green;">Shipment Details - <span t-field="doc.typeOfShipment" />
  From <span t-field="doc.originCountry" />
