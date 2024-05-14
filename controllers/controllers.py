@@ -1187,13 +1187,15 @@ class DeepuSaleController(http.Controller):
                 })
             
             states = {
-                "labels":['Draft','Booked','Departed','Transit','Arrived','Delivered'],
+                "labels":['Draft','Booked','Departed','Transit','Arrived','Under Clearance','Out For Delivery','Delivered'],
                 "values":[
                 request.env['deepu.sale.tracking'].sudo().search_count([('state', '=', 'draft'),('partner_id', '=', pid)]),
                 request.env['deepu.sale.tracking'].sudo().search_count([('state', '=', 'booked'),('partner_id', '=', pid)]),
                 request.env['deepu.sale.tracking'].sudo().search_count([('state', '=', 'departed'),('partner_id', '=', pid)]),
                 request.env['deepu.sale.tracking'].sudo().search_count([('state', '=', 'transit'),('partner_id', '=', pid)]),
-                request.env['deepu.sale.tracking'].sudo().search_count([('state', '=', 'arrived'),('partner_id', '=', pid)]),
+                request.env['deepu.sale.tracking'].sudo().search_count([('state', '=', 'transit'),('partner_id', '=', pid)]),
+                request.env['deepu.sale.tracking'].sudo().search_count([('state', '=', 'clearance'),('partner_id', '=', pid)]),
+                request.env['deepu.sale.tracking'].sudo().search_count([('state', '=', 'out'),('partner_id', '=', pid)]),
                 request.env['deepu.sale.tracking'].sudo().search_count([('state', '=', 'delivered'),('partner_id', '=', pid)]),
                 # request.env['deepu.sale.tracking'].sudo().search_count([('state', '=', 'cancel'),('partner_id', '=', pid)])
                 ]

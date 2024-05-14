@@ -39,6 +39,11 @@
         'report/invoice.xml',
         
     ],
+    'assets': {
+        'web.assets_backend': [
+            'deepu_sale/static/src/css/decoration.css',
+        ],
+    },
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',

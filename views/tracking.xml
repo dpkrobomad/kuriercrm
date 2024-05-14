@@ -79,10 +79,12 @@
                         <button name="action_departed" confirm="Do you want to set state to Departed?" states="booked" type="object" string="Set to Departed" />
                         <button name="action_transpotation" confirm="Do you want to set state to Transportation ?" states="departed" type="object" string="Set to Transportation" />
                         <button name="action_arrived" confirm="Do you want to set state to Arrived ?" states="transit" type="object" string="Set to Arrived" />
+                        <button name="action_clearance" confirm="Do you want to set state to Under Clearance ?" states="clearance" type="object" string="Set to Under Clearance" />
+                        <button name="action_out_for_delivery" confirm="Do you want to set state to Out For Delivery ?" states="out" type="object" string="Set to Out For Delivery" />
                         <button name="action_delivered" confirm="Do you want to set state to Delivered ?" states="arrived" type="object" string="Set to Delivered" />
                         <button name="action_cencel" confirm="Do you want to set state to Cancel ?"  attrs="{'invisible':[('state','in',['delivered','cancel'])]}" type="object" string="Cancel Shipping" />
                         <button name="action_set_draft" confirm="Do you want to set state to Draft ?"  attrs="{'invisible':[('state','in',['draft'])]}" type="object" string="Set to Draft" />
-                        <button name="action_set_to_prev" confirm="Do you want to set state back to previous state ?" attrs="{'invisible':[('state','in',['draft','delivered','booked','arrived','departed','transit'])]}"  type="object" string="Set To Prev State" />
+                        <button name="action_set_to_prev" confirm="Do you want to set state back to previous state ?" attrs="{'invisible':[('state','in',['draft','delivered','booked','arrived','clearance','out','departed','transit'])]}"  type="object" string="Set To Prev State" />
                         <!-- attrs="{'invisible':[('state','in',['draft','delivered','booked','arrived','departed','transit'])]}" -->
                         <field name="state" widget="statusbar" />
                     </header> 
@@ -149,7 +151,7 @@
                                 <field name="empty_return_date" />
                                 <field name="gate_out_date" />
                                 <field name="Flight_Vessel_Schedule"/>
-                                <field name="date_of_delivery" attrs="{'invisible':[('state', '=', 'draft'),('state', '=', 'booked'),('state', '=', 'departed'),('state', '=', 'transit')]}"/>
+                                <field name="date_of_delivery" attrs="{'invisible':[('state', '=', 'draft'),('state', '=', 'booked'),('state', '=', 'departed'),('state', '=', 'transit'),('state', '=', 'clearance'),('state', '=', 'out')]}"/>
                                 <field name="totalCW" readonly="1"/>
                                 <field name="required_attention"/>
                                 <field name="sent_action_email"/>
@@ -253,7 +255,7 @@
                     <field name="actual_departure" optional="show"/>
                     <field name="actual_arrival" optional="show"/>
                     <field name="remarks"/>
-                    <field name="state" decoration-primary="state =='arrived'" decoration-success="state == 'delivered'" decoration-info="state == 'booked'"  decoration-warning="state == 'departed'" decoration-muted="state == 'transpotation'" widget="badge" optional="show"/>
+                    <field name="state" decoration-primary="state =='arrived'" decoration-success="state == 'delivered'" decoration-info="state == 'booked'"  decoration-warning="state == 'departed'" decoration-muted="state == 'transpotation'" decoration-orange="state == 'clearance'" decoration-purple="state == 'out'" widget="badge" optional="show"/>
                     
                 </tree>
             </field>

@@ -360,6 +360,8 @@ class Tracking(models.Model):
         ('departed', 'Departed from Origin Port'),
         ('transit', 'In Transit'),
         ('arrived', 'Arrived at Destination Port'),
+        ('clearance', 'Under Clearance'),
+        ('out', 'Out for Delivery.'),
         ('delivered', 'Delivered'),
         ('cancel', 'Cancelled'),
         ], string='Status', readonly=True, copy=False, index=True, default='draft',tracking=True)
@@ -814,6 +816,16 @@ class Tracking(models.Model):
                         rec.state = 'arrived'
                     else:
                         print("Failed To change ")
+    def action_clearance(self):
+        for rec in self:
+            rec.prev_state = rec.state
+            rec.state = 'clearance'
+            
+    def action_out_for_delivery(self):
+        for rec in self:
+            rec.prev_state = rec.state
+            rec.state = 'out'
+    
     def action_delivered(self):
         # date_of_delivery
         for rec in self:
