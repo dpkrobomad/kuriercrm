@@ -22,8 +22,9 @@
                     </group>
                 </group>
                 <footer>
-                    <button string="Print" type="object" name="print_pod" class="btn-primary"/>
+                    <button string="Preview" type="object" name="preview_pod" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
+        
                 </footer>
             </form>
         </field>

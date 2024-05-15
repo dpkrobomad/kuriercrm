@@ -7,7 +7,7 @@ class PODWizard(models.TransientModel):
     tracking_id = fields.Many2one('deepu.sale.tracking', string="Tracking", required=True)
     consignee_address = fields.Char(string="Consignee Address")
     cargo_details = fields.Char(string="Cargo Details")
-    no_cartons = fields.Integer(string="No. Of Cartons")
+    no_cartons = fields.Char(string="No. Of Cartons")
     awb_bl = fields.Char(string="AWB/BL #")
     truck_number = fields.Char(string="Truck Number")
     delivery_date = fields.Datetime(string="Delivery Date")
@@ -31,6 +31,9 @@ class PODWizard(models.TransientModel):
                 'po_number': tracking.po_number,
             })
         return res
+
+    def preview_pod(self):
+        return self.env.ref('deepu_sale.action_report_pod').report_action(self, data=None, config=False)
 
     def print_pod(self):
         return self.env.ref('deepu_sale.action_report_pod').report_action(self)
