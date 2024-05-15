@@ -5,8 +5,8 @@ class PODWizard(models.TransientModel):
     _description = 'POD Wizard'
 
     tracking_id = fields.Many2one('deepu.sale.tracking', string="Tracking", required=True)
-    consignee_address = fields.Text(string="Consignee Address")
-    cargo_details = fields.Text(string="Cargo Details")
+    consignee_address = fields.Char(string="Consignee Address")
+    cargo_details = fields.Char(string="Cargo Details")
     no_cartons = fields.Integer(string="No. Of Cartons")
     awb_bl = fields.Char(string="AWB/BL #")
     truck_number = fields.Char(string="Truck Number")

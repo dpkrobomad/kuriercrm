@@ -5,17 +5,21 @@
         <field name="model">pod.wizard</field>
         <field name="arch" type="xml">
             <form string="Print POD">
-                <group>
-                    <field name="consignee_address"/>
-                    <field name="cargo_details"/>
-                    <field name="no_cartons"/>
-                    <field name="awb_bl"/>
-                    <field name="truck_number"/>
-                    <field name="delivery_date"/>
-                    <field name="po_number"/>
-                    <field name="remarks"/>
-                    <field name="receiver_name"/>
-                    <field name="date_time"/>
+                <group name="wizard_main">
+                    <group name="wizard_main_col1">
+                        <field name="consignee_address"/>
+                        <field name="cargo_details"/>
+                        <field name="no_cartons"/>
+                        <field name="awb_bl"/>
+                        <field name="truck_number"/>
+                    </group>
+                    <group name="wizard_main_col2">
+                        <field name="delivery_date"/>
+                        <field name="po_number"/>
+                        <field name="remarks"/>
+                        <field name="receiver_name"/>
+                        <field name="date_time"/>
+                    </group>
                 </group>
                 <footer>
                     <button string="Print" type="object" name="print_pod" class="btn-primary"/>
