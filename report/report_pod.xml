@@ -1,0 +1,34 @@
+<odoo>
+    <template id="report_pod_template">
+        <t t-call="web.external_layout">
+            <main>
+                <div class="page">
+                    <h2>Proof of Delivery</h2>
+                    <t t-foreach="docs" t-as="doc">
+                        <p><strong>Consignee Address:</strong> <span t-esc="doc.consignee_address"/></p>
+                        <p><strong>Cargo Details:</strong> <span t-esc="doc.cargo_details"/></p>
+                        <p><strong>No.of pallets / Cartons:</strong> <span t-esc="doc.no_cartons"/></p>
+                        <p><strong>AWB/BL #:</strong> <span t-esc="doc.awb_bl"/></p>
+                        <p><strong>Truck #:</strong> <span t-esc="doc.truck_number"/></p>
+                        <p><strong>Delivery Date:</strong> <span t-esc="doc.delivery_date"/></p>
+                        <p><strong>PO Number:</strong> <span t-esc="doc.po_number"/></p>
+                        <p><strong>Remarks:</strong> <span t-esc="doc.remarks"/></p>
+                        <p><strong>Goods Received in Good Conditions:</strong></p>
+                        <p><strong>Receiver's Name:</strong> <span t-esc="doc.receiver_name"/></p>
+                        <p><strong>Date &amp; Time:</strong> <span t-esc="doc.date_time"/></p>
+                        <p><strong>Signature &amp; Company Stamp:</strong></p>
+                    </t>
+                </div>
+            </main>
+        </t>
+    </template>
+
+    <report 
+        id="action_report_pod"
+        string="Proof of Delivery"
+        model="pod.wizard"
+        report_type="qweb-pdf"
+        file="deepu_sale.report_pod_template"
+        name="deepu_sale.report_pod_template"
+    />
+</odoo>

@@ -361,7 +361,7 @@ class Tracking(models.Model):
         ('transit', 'In Transit'),
         ('arrived', 'Arrived at Destination Port'),
         ('clearance', 'Under Clearance'),
-        ('out', 'Out for Delivery.'),
+        ('out', 'Out for Delivery'),
         ('delivered', 'Delivered'),
         ('cancel', 'Cancelled'),
         ], string='Status', readonly=True, copy=False, index=True, default='draft',tracking=True)
@@ -721,6 +721,18 @@ class Tracking(models.Model):
             
             
         return res
+    
+    def action_print_pod(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Print POD',
+            'res_model': 'pod.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_tracking_id': self.id,
+            },
+        }
     
     def action_booked(self):
 

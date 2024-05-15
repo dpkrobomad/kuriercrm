@@ -37,6 +37,8 @@
         'report/report_layout.xml',
         'report/quotation_report.xml',
         'report/invoice.xml',
+        'views/pod_wizard_view.xml',
+        'report/report_pod.xml',
         
     ],
     'assets': {

@@ -1,15 +1,10 @@
-.decoration-teal {
-    color: rgb(0, 254, 233) !important;
+/* /Users/beardobot/projects/odoo15/custom/deepu_sale/static/src/css/decoration.css */
+.o_list_view .decoration-out {
+    background-color: #ffcc00 !important;
+    font-weight: bold;
 }
 
-.decoration-orange {
-    color: orange !important;
-}
-
-.decoration-purple {
-    color: purple !important;
-}
-
-.decoration-grey {
-    color: grey !important;
+.o_list_view .decoration-clearance {
+    background-color: #33cc33 !important;
+    font-style: italic;
 }
