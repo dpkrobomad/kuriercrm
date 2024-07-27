@@ -46,7 +46,7 @@ class AccountMove(models.Model):
     exchange_rates = fields.Char('Exchange Rates')
     # profit_and_loss_perc = fields.Float('Profit in AED',compute="_profit_calculate",digits=(12,2))
     
-    
+    show_sib_account = fields.Boolean('Show SIB Account in Invoice',default=False)
     product_line_ids = fields.One2many('deepu.account.order.line','account_order_id')
     container_line_ids = fields.One2many('deepu.account.container.line','account_container_order_id')
     @api.depends('tax_totals_json')

@@ -421,11 +421,22 @@
                     <div class="row">
                         <div class="col-6 deepu-pymt">
                             <h5><strong>Payment Information</strong></h5>
-                            <p> KurierVogel Freight broker LLC<br/>
+                            <t t-if="o.show_sib_account">
+                            <p>
+                                KurierVogel Freight Broker LLC<br/>
+                                SIB Bank, Muwaileh Branch<br/>
+                                Account number- (AED ) 0012188207001<br/>
+                                IBAN No: AE750410000012188207001
+                            </p>
+                            
+                            </t>
+                            <t t-else="">
+                                <p> KurierVogel Freight Broker LLC<br/>
                                 ADCB Bank, Al Riggha Road Branch<br/>
                                 Account number- (AED ) 12327224920001<br/>
                                 IBAN No: AE920030012327224920001
                             </p>
+                            </t>
                             
                         </div>
                         <div class="col-6 text-right deepu-cnt" >

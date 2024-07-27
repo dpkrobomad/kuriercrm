@@ -47,6 +47,7 @@
 						<field name="oceanBillOfLading" attrs="{'invisible':['|','|','|',('ts','=','Air Freight'),('ts','=','Courier Service'),('ts','=','Road Freight'),('move_type', 'not in', ('in_invoice', 'out_invoice'))]}"  />
 						<field name="awb" attrs="{'invisible':['|','|','|',('ts','=','FCL'),('ts','=','LCL'),('ts','=','Road Freight'),('move_type', 'not in', ('in_invoice', 'out_invoice'))]}"   />
 						<field name="billOfLading" attrs="{'invisible':['|','|','|','|',('ts','=','Air Freight'),('ts','=','Courier Service'),('ts','=','LCL'),('ts','=','FCL'),('move_type', 'not in', ('in_invoice', 'out_invoice'))]}"   />
+						<field name="show_sib_account"/>
 				</xpath>
 				<xpath expr="//field[@name='payment_reference']" position="after">
 					<field name="ref" attrs="{'invisible': [('move_type', 'not in', ('in_invoice', 'out_invoice'))] }" />
