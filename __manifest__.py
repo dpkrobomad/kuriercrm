@@ -20,7 +20,7 @@
     'version': '15.0.1.2',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','web','sale','sale_management','site_settings'],
+    'depends': ['base','web','sale','sale_management','account','site_settings'],
 
     # always loaded
     'data': [
@@ -39,8 +39,11 @@
         'report/invoice.xml',
         'views/pod_wizard_view.xml',
         'report/report_pod.xml',
-	'views/partner_view.xml',
+        'views/partner_view.xml',
         'views/create_account_wizard_view.xml',
+        'views/account_soa_view.xml',
+        # XLSX reports; include when report_xlsx is installed
+        # 'reports/account_soa_report.xml',
     ],
     'assets': {
         'web.assets_backend': [

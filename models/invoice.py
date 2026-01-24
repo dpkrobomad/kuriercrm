@@ -54,19 +54,18 @@ class AccountMove(models.Model):
     @api.depends('tax_totals_json')
     def _currency_convert(self):
         curr_obj = self.env['res.currency']
-        usd_obj = curr_obj.sudo().search([('name','=','USD')])
-        eur_obj = curr_obj.sudo().search([('name','=','EUR')])
-        gbp_obj = curr_obj.sudo().search([('name','=','GBP')])
-        
-        print(usd_obj,'^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
-        if self.amount_total >0:
-            self.usd = self.amount_total*usd_obj.rate
-            self.eur = self.amount_total*eur_obj.rate
-            self.gbp = self.amount_total*gbp_obj.rate
-        else:
-            self.usd = None
-            self.eur = None
-            self.gbp = None
+        usd_obj = curr_obj.sudo().search([('name', '=', 'USD')], limit=1)
+        eur_obj = curr_obj.sudo().search([('name', '=', 'EUR')], limit=1)
+        gbp_obj = curr_obj.sudo().search([('name', '=', 'GBP')], limit=1)
+        for rec in self:
+            if rec.amount_total > 0 and usd_obj and eur_obj and gbp_obj:
+                rec.usd = rec.amount_total * usd_obj.rate
+                rec.eur = rec.amount_total * eur_obj.rate
+                rec.gbp = rec.amount_total * gbp_obj.rate
+            else:
+                rec.usd = None
+                rec.eur = None
+                rec.gbp = None
             
     # @api.depends('vendor_bill_ref')
     def _profit_calculate(self):

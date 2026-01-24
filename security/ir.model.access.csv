@@ -1,4 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_account_soa,access.account.soa,model_account_soa,account.group_account_invoice,1,0,0,0
+access_account_soa_user,account.soa.user,model_account_soa,account.group_account_user,1,0,0,0
+access_account_soa_manager,account.soa.manager,model_account_soa,account.group_account_manager,1,0,0,0
 access_deepu_sale_deepu_sale,deepu_sale.deepu_sale,model_deepu_sale_order_line,base.group_user,1,1,1,1
 access_deepu_sale_deepu_sale_tracking,deepu_sale.deepu_sale_tracking,model_deepu_sale_tracking,base.group_user,1,1,1,1
 access_deepu_sale_container,deepu_sale.deepu_container_line,model_deepu_sale_container_line,base.group_user,1,1,1,1

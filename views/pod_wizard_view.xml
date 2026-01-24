@@ -7,34 +7,29 @@
             <form string="Print POD">
                 <group name="wizard_main">
                     <group name="wizard_main_col1">
-                        <field name="consignee_address"/>
-                        <field name="cargo_details"/>
+                        <field name="tracking_id" readonly="1"/>
+                        <field name="consignee_address" widget="text"/>
+                        <field name="cargo_details" widget="text"/>
                         <field name="no_cartons"/>
                         <field name="awb_bl"/>
+                        <field name="haulier_plate"/>
                         <field name="truck_number"/>
                     </group>
                     <group name="wizard_main_col2">
                         <field name="delivery_date"/>
                         <field name="po_number"/>
-                        <field name="remarks"/>
+                        <field name="goods_received_ok"/>
+                        <field name="remarks" widget="text"/>
                         <field name="receiver_name"/>
                         <field name="date_time"/>
                     </group>
                 </group>
                 <footer>
                     <button string="Preview" type="object" name="preview_pod" class="btn-primary"/>
+                    <button string="Download PDF" type="object" name="download_pdf" class="btn-secondary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
-        
                 </footer>
             </form>
         </field>
     </record>
-
-    <!-- <record id="action_pod_wizard" model="ir.actions.act_window">
-        <field name="name">Print POD</field>
-        <field name="res_model">pod.wizard</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_pod_wizard_form"/>
-        <field name="target">new</field>
-    </record> -->
 </odoo>

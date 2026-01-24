@@ -33,6 +33,20 @@
         </record>
         
 
+        <record id="view_tracking_search" model="ir.ui.view">
+            <field name="name">deepu.sale.tracking.search</field>
+            <field name="model">deepu.sale.tracking</field>
+            <field name="arch" type="xml">
+                <search string="Search Tracking">
+                    <field name="name" string="Number"/>
+                    <field name="partner_id"/>
+                    <field name="po_number"/>
+                    <field name="consignee"/>
+                    <field name="shipper"/>
+                </search>
+            </field>
+        </record>
+
         <record id="deepu_sale_tracking_rec" model="ir.actions.act_window">
             <field name="name">Tracking</field>
             <field name="res_model">deepu.sale.tracking</field>
@@ -242,34 +256,77 @@
 			<field name="model">deepu.sale.tracking</field>
             <field name="arch" type="xml">
                 <tree string="Tracking" sample="1">
-    
+                    <!-- Core / Reference -->
                     <field name="name" string="Number" readonly="1" decoration-bf="1"/>
                     <field name="partner_id" readonly="1"/>
-                    <field name="date_created" readonly="1" string="Created At" />
-                    <field name="sale_order_id" />
-                    <field name="shipmentType"/>
-                    <field name="shipmentTerms"/>
-                    <field name="no_of_pcs"/>
-                    <field name="totalCW"/>
-                    <field name="scheduled_departure" optional="show"/>
-                    <field name="scheduled_arrival" optional="show"/>
-                    <field name="actual_departure" optional="show"/>
-                    <field name="actual_arrival" optional="show"/>
-                    <field name="remarks"/>
-                    <field name="state" 
-                    decoration-primary="state =='arrived'" 
-                    decoration-success="state == 'delivered'" 
-                    decoration-info="state == 'booked'" 
-                    decoration-warning="state == 'departed'" 
-                    decoration-muted="state == 'transpotation'" 
-                    decoration-bf="state == 'clearance'" 
-                    decoration-it="state == 'out'"
-                    widget="badge" optional="show"/>
-<!-- 
-                    decoration-clearance="state == 'clearance'"
-                    decoration-out="state == 'out'" -->
+                    <field name="contact" optional="hide"/>
+                    <field name="date_created" readonly="1" string="Created At" optional="show"/>
+                    <field name="sale_order_id" optional="show"/>
+                    <field name="po_number" optional="hide"/>
 
-                    
+                    <!-- Shipment type & terms -->
+                    <field name="shipmentType" optional="show"/>
+                    <field name="shipmentTerms" optional="show"/>
+
+                    <!-- Cargo -->
+                    <field name="no_of_pcs" optional="hide"/>
+                    <field name="totalCW" optional="hide"/>
+
+                    <!-- Schedule & dates -->
+                    <field name="scheduled_departure" optional="show" widget="datetime"/>
+                    <field name="scheduled_arrival" optional="show" widget="datetime"/>
+                    <field name="actual_departure" optional="show" widget="datetime"/>
+                    <field name="actual_arrival" optional="show" widget="datetime"/>
+                    <field name="gate_out_date" optional="hide" widget="date"/>
+                    <field name="final_delivery_date" optional="hide" widget="date"/>
+                    <field name="date_of_delivery" optional="hide" widget="datetime"/>
+                    <field name="empty_return_date" optional="hide"/>
+
+                    <!-- Location & logistics -->
+                    <field name="shipper" optional="hide"/>
+                    <field name="consignee" optional="hide"/>
+                    <field name="final_delivery_place" optional="hide"/>
+                    <field name="Flight_Vessel_Schedule" optional="hide"/>
+
+                    <!-- Transit -->
+                    <field name="transit_time" optional="hide"/>
+                    <field name="transit_delay" optional="hide"/>
+                    <field name="shipping_line" optional="hide"/>
+                    <field name="sailing_status" optional="hide"/>
+                    <field name="booking_no" optional="hide"/>
+
+                    <!-- Container -->
+                    <field name="container_type" optional="hide"/>
+                    <field name="container_teu" optional="hide"/>
+                    <field name="container_number" optional="hide"/>
+                    <field name="is_transshipment" optional="hide" widget="boolean_toggle"/>
+                    <field name="BLContainerCount" optional="hide"/>
+
+                    <!-- Documents -->
+                    <field name="oceanBillOfLading" optional="hide"/>
+                    <field name="awb" optional="hide"/>
+                    <field name="billOfLading" optional="hide"/>
+
+                    <!-- Flags & status -->
+                    <field name="required_attention" optional="hide" widget="boolean_toggle"/>
+                    <field name="sent_action_email" optional="hide" widget="boolean_toggle"/>
+                    <field name="is_shipsgo_tracking" optional="hide" widget="boolean_toggle"/>
+                    <field name="is_tracking_done" optional="hide" widget="boolean_toggle"/>
+                    <field name="is_invoiced" optional="hide" widget="boolean_toggle"/>
+                    <field name="shipsgo_checking_status" optional="hide"/>
+                    <field name="co2" optional="hide"/>
+
+                    <!-- State & notes -->
+                    <field name="state"
+                        decoration-primary="state == 'arrived'"
+                        decoration-success="state == 'delivered'"
+                        decoration-info="state == 'booked'"
+                        decoration-warning="state == 'departed'"
+                        decoration-muted="state == 'transit'"
+                        decoration-bf="state == 'clearance'"
+                        decoration-it="state == 'out'"
+                        widget="badge" optional="show"/>
+                    <field name="remarks" optional="hide"/>
                 </tree>
             </field>
         </record>

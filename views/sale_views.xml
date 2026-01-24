@@ -33,14 +33,66 @@
 			<field name="model">sale.order</field>
 			<field name="inherit_id" ref="sale.view_quotation_tree" />
 			<field name="arch" type="xml">
+				<!-- Custom Status Field -->
 				<field name="state" position="after">
-					<field name="new_state" decoration-primary="state =='draft'"  decoration-success="state == 'sent'" decoration-info="state == 'sale'" decoration-warning="state == 'invoiced'" decoration-muted="state == 'cancel'" widget="badge" optional="show" />
+					<field name="new_state" decoration-primary="new_state =='draft'" decoration-success="new_state == 'sent'" decoration-info="new_state == 'sale'" decoration-warning="new_state == 'invoiced'" decoration-muted="new_state == 'cancel'" widget="badge" optional="show" />
+				</field>
+				
+				<!-- Reference and Contact Information -->
+				<field name="partner_id" position="before">
+					<field name="email_ref_no" optional="show" />
 				</field>
 				<field name="partner_id" position="before">
 					<field name="email_ref_no"  />
 				</field>
 				<field name="partner_id" position="after">
-					<field name="contact_person"  />
+					<field name="contact_person" optional="show" />
+					<field name="contact" optional="hide" />
+					<field name="po_number" optional="hide" />
+				</field>
+				
+				<!-- Shipment Information -->
+				<field name="create_date" position="after">
+					<field name="typeOfShipment" optional="hide" />
+					<field name="shipmentTerms" optional="hide" />
+					<field name="cargoReadyDate" optional="hide" widget="date" />
+				</field>
+				
+				<!-- Location Information -->
+				<field name="user_id" position="after">
+					<field name="portOfLoading" optional="hide" />
+					<field name="portOfDestination" optional="hide" />
+					<field name="originCountry_id" optional="hide" />
+					<field name="destinationCountry_id" optional="hide" />
+					<field name="originCountry" optional="hide" />
+					<field name="destinationCountry" optional="hide" />
+					<field name="originAddress" optional="hide" />
+					<field name="destinationAddress" optional="hide" />
+					<field name="originZip" optional="hide" />
+					<field name="destinationZip" optional="hide" />
+				</field>
+				
+				<!-- Cargo Details -->
+				<field name="amount_total" position="after">
+					<field name="commodityType" optional="hide" />
+					<field name="cargoWeight" optional="hide" />
+					<field name="totalChargableWeight" optional="hide" />
+					<field name="no_of_pcs" optional="hide" />
+				</field>
+				
+				<!-- Tracking and Delivery Information -->
+				<field name="amount_untaxed" position="after">
+					<field name="tracking_id" optional="hide" />
+					<field name="is_delivered" optional="hide" widget="boolean_toggle" />
+					<field name="is_transshipment" optional="hide" widget="boolean_toggle" />
+				</field>
+				
+				<!-- Shipping Documents -->
+				<field name="invoice_status" position="after">
+					<field name="oceanBillOfLading" optional="hide" />
+					<field name="awb" optional="hide" />
+					<field name="billOfLading" optional="hide" />
+					<field name="container_number" optional="hide" />
 				</field>
 			</field>
     	</record>

@@ -1,34 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="report_pod_template">
-        <t t-call="web.external_layout">
-            <main>
-                <div class="page">
-                    <h2>Proof of Delivery</h2>
-                    <t t-foreach="docs" t-as="doc">
-                        <p><strong>Consignee Address:</strong> <span t-esc="doc.consignee_address"/></p>
-                        <p><strong>Cargo Details:</strong> <span t-esc="doc.cargo_details"/></p>
-                        <p><strong>No.of pallets / Cartons:</strong> <span t-esc="doc.no_cartons"/></p>
-                        <p><strong>AWB/BL #:</strong> <span t-esc="doc.awb_bl"/></p>
-                        <p><strong>Truck #:</strong> <span t-esc="doc.truck_number"/></p>
-                        <p><strong>Delivery Date:</strong> <span t-esc="doc.delivery_date"/></p>
-                        <p><strong>PO Number:</strong> <span t-esc="doc.po_number"/></p>
-                        <p><strong>Remarks:</strong> <span t-esc="doc.remarks"/></p>
-                        <p><strong>Goods Received in Good Conditions:</strong></p>
-                        <p><strong>Receiver's Name:</strong> <span t-esc="doc.receiver_name"/></p>
-                        <p><strong>Date &amp; Time:</strong> <span t-esc="doc.date_time"/></p>
-                        <p><strong>Signature &amp; Company Stamp:</strong></p>
-                    </t>
-                </div>
-            </main>
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <t t-set="base_url" t-value="env['ir.config_parameter'].sudo().get_param('web.base.url') or 'http://localhost:8069/'"/>
+                    <t t-set="logo_url" t-value="(base_url or '').rstrip('/') + '/deepu_sale/static/description/logo.png'"/>
+                    <div class="page" style="font-family: sans-serif; padding: 20px 40px; max-width: 100%; width: 100%;">
+                        <!-- Header: Logo left, Company details right -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; border-bottom: 2px solid #000; padding-bottom: 1rem;">
+                            <div style="flex: 0 0 auto;">
+                                <img t-att-src="logo_url" alt="Logo" style="max-height: 80px; display: block;"/>
+                            </div>
+                            <div style="flex: 1; text-align: right; font-size: 0.9rem; line-height: 1.6;">
+                                <div style="font-weight: bold; margin-bottom: 0.5rem;">Kurier Vogel Freight Broker LLC</div>
+                                <div>Al Fajer Complex, 1st Floor,</div>
+                                <div>Office No. 105/14, P.O. Box 124432,</div>
+                                <div>Oud Metha, Dubai, United Arab Emirates</div>
+                                <div style="margin-top: 0.5rem;">VAT-TRN NO: 100473251500003</div>
+                                <div>Phone : +9714 259 7606</div>
+                            </div>
+                        </div>
+                        
+                        <h2 style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 0.25rem;">DELIVERY RECEIPT</h2>
+                        <p style="text-align: center; font-size: 1rem; margin-bottom: 1.5rem; text-transform: uppercase;">(PROOF OF DELIVERY)</p>
+
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; table-layout: fixed; margin: 0 auto;">
+                            <tbody>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; width: 25%; vertical-align: top; font-weight: bold; font-size: 0.95rem;">Consignee Address</td>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; white-space: pre-wrap; word-wrap: break-word; font-size: 0.95rem;"><t t-esc="doc.consignee_address or ''"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-weight: bold; font-size: 0.95rem;">Cargo Details</td>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; min-height: 50px; white-space: pre-wrap; word-wrap: break-word; font-size: 0.95rem;"><t t-esc="doc.cargo_details or ''"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-weight: bold; font-size: 0.95rem;">Air Way Bill / BL #</td>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-size: 0.95rem;"><t t-esc="doc.awb_bl or ''"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-weight: bold; font-size: 0.95rem;">Haulier Plate #</td>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-size: 0.95rem;"><t t-esc="doc.haulier_plate or ''"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-weight: bold; font-size: 0.95rem;">Truck #</td>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-size: 0.95rem;"><t t-esc="doc.truck_number or ''"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-weight: bold; font-size: 0.95rem;">Delivery Date</td>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-size: 0.95rem;"><t t-esc="doc.delivery_date and doc.delivery_date.strftime('%Y-%m-%d %H:%M') or ''"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-weight: bold; font-size: 0.95rem;">Goods Received in Good conditions :</td>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-size: 0.95rem;"><t t-esc="doc.goods_received_ok or ''"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-weight: bold; font-size: 0.95rem;">Recipient Remarks If Any :</td>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; min-height: 50px; white-space: pre-wrap; word-wrap: break-word; font-size: 0.95rem;"><t t-esc="doc.remarks or ''"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-weight: bold; font-size: 0.95rem;">Receiver's Name</td>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-size: 0.95rem;"><t t-esc="doc.receiver_name or ''"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-weight: bold; font-size: 0.95rem;">Date &amp; Time</td>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-size: 0.95rem;"><t t-esc="doc.date_time and doc.date_time.strftime('%Y-%m-%d %H:%M') or ''"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 12px 16px; font-weight: bold; font-size: 0.95rem;">Signature &amp; Company Stamp</td>
+                                    <td style="border: 1px solid #000; padding: 50px 16px; min-height: 100px; font-size: 0.95rem;"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Footer -->
+                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ccc; text-align: center; font-size: 0.85rem; color: #666;">
+                            Customer Support : cs@kuriervogel.com   | https://kuriervogel.com |  Call Us On : +9714 259 7606
+                        </div>
+                    </div>
+                </t>
+            </t>
         </t>
     </template>
 
-    <report 
+    <report
         id="action_report_pod"
-        string="Proof of Delivery"
+        string="Delivery Receipt (POD)"
+        model="pod.wizard"
+        report_type="qweb-html"
+        file="deepu_sale.report_pod_template"
+        name="deepu_sale.report_pod_template"
+        print_report_name="'Delivery Receipt - %s' % (object.tracking_id.name or 'POD')"
+    />
+    <report
+        id="action_report_pod_pdf"
+        string="Delivery Receipt (POD) PDF"
         model="pod.wizard"
         report_type="qweb-pdf"
         file="deepu_sale.report_pod_template"
         name="deepu_sale.report_pod_template"
+        print_report_name="'Delivery Receipt - %s' % (object.tracking_id.name or 'POD')"
     />
 </odoo>

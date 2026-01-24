@@ -420,6 +420,16 @@ class Tracking(models.Model):
         'shipment_id', 
         string='BLContainers'
     )
+
+    @api.depends('sale_order_id', 'sale_order_id.invoice_ids')
+    def _compute_is_invoiced(self):
+        for rec in self:
+            rec.is_invoiced = bool(
+                rec.sale_order_id
+                and rec.sale_order_id.invoice_ids
+                and rec.sale_order_id.invoice_ids.filtered(lambda inv: inv.state != 'cancel')
+            )
+
     def _fetch_tracking_info(self, container_number):
         import requests
         try:
@@ -634,8 +644,8 @@ class Tracking(models.Model):
                 else:
                     rec.consignee = None
                 
-                if rec.sale_order_id.contact_person:
-                    rec.contact = rec.sale_order_id.contact_person
+                if rec.sale_order_id.contact:
+                    rec.contact = rec.sale_order_id.contact
                 else:
                     rec.contact = None
                 
