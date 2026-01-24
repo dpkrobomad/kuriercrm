@@ -44,9 +44,11 @@ class AccountMove(models.Model):
     is_loss = fields.Boolean('Is Loss',default=False)
     custom_terms = fields.Html(string='Terms and Conditions', widget='html', help="Terms and Conditions", placeholder="Terms and Conditions...")
     exchange_rates = fields.Char('Exchange Rates')
+    currency_selection = fields.Selection([('AED', 'AED'), ('USD', 'USD'), ('EUR', 'EUR')], string='Currency', default='AED')
     # profit_and_loss_perc = fields.Float('Profit in AED',compute="_profit_calculate",digits=(12,2))
     
     show_sib_account = fields.Boolean('Show SIB Account in Invoice',default=False)
+    
     product_line_ids = fields.One2many('deepu.account.order.line','account_order_id')
     container_line_ids = fields.One2many('deepu.account.container.line','account_container_order_id')
     @api.depends('tax_totals_json')

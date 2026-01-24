@@ -13,6 +13,20 @@
 				</field>
 			</field>
     	</record>
+
+
+		<record id="sale_order_search_inherit_email_ref" model="ir.ui.view">
+			<field name="name">sale.order.search.inherit.email_ref</field>
+			<field name="model">sale.order</field>
+			<!-- Use the correct search view of sale.order; in v15 it's usually this: -->
+			<field name="inherit_id" ref="sale.view_sales_order_filter"/>
+			<field name="arch" type="xml">
+			<xpath expr="//search" position="inside">
+				<field name="email_ref_no" string="Email Ref No"/>
+			</xpath>
+			</field>
+		</record>
+
 		
 		<record id="sale_order_view_list_inherit_sale_view" model="ir.ui.view">
 			<field name="name">Sale Order List</field>
@@ -21,6 +35,9 @@
 			<field name="arch" type="xml">
 				<field name="state" position="after">
 					<field name="new_state" decoration-primary="state =='draft'"  decoration-success="state == 'sent'" decoration-info="state == 'sale'" decoration-warning="state == 'invoiced'" decoration-muted="state == 'cancel'" widget="badge" optional="show" />
+				</field>
+				<field name="partner_id" position="before">
+					<field name="email_ref_no"  />
 				</field>
 				<field name="partner_id" position="after">
 					<field name="contact_person"  />
@@ -124,6 +141,7 @@
                     <field name="awb" attrs="{'invisible': [('ts', 'not in', ['Air Freight', 'Courier Service'])]}" />
                     <field name="billOfLading" attrs="{'invisible': [('ts', 'not in', ['Road Freight'])]}"    /> -->
 					<field name="invoice_ids" widget="many2many_tags"/>
+					<field name="email_ref_no"/>
 					
 	
 					

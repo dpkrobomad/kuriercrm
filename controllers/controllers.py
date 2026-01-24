@@ -8,6 +8,8 @@ from datetime import datetime, timedelta,date
 from collections import Counter
 from odoo import fields
 import re
+import logging
+_logger = logging.getLogger(__name__)
 # from geopy.geocoders import Nominatim
 from mapbox import Geocoder
 from dateutil.relativedelta import relativedelta
@@ -1318,6 +1320,8 @@ class DeepuSaleController(http.Controller):
             return vals
         else:
             return {'error': 'No pid provided.'}
+    
+   
         
    
         

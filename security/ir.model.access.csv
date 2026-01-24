@@ -12,3 +12,4 @@ access_deepu_account_container_line,deepu_sale.deepu_account_container_line,mode
 deepu_sale.access_deepu_sale_contact,access_deepu_sale_contact,deepu_sale.model_deepu_sale_contact,base.group_user,1,0,0,0
 deepu_sale.access_deepu_tracking_blcontainer,access_deepu_tracking_blcontainer,deepu_sale.model_deepu_tracking_blcontainer,base.group_user,1,0,0,0
 access_pod_wizard_user,pod.wizard user access,model_pod_wizard,base.group_user,1,1,1,1
+access_create_account_wizard,create.account.wizard,model_create_account_wizard,base.group_user,1,1,1,1

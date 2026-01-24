@@ -39,7 +39,8 @@
         'report/invoice.xml',
         'views/pod_wizard_view.xml',
         'report/report_pod.xml',
-        
+	'views/partner_view.xml',
+        'views/create_account_wizard_view.xml',
     ],
     'assets': {
         'web.assets_backend': [

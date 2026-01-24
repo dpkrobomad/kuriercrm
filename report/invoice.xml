@@ -62,7 +62,7 @@
                         font-size:11px;
                     }
                     address {
-                        font-size:12px;
+                        font-size:11px;
                         margin-bottom:0px !important;
                     }
                     .address {
@@ -70,25 +70,25 @@
                         
                     }
                     .deepu-cmp {
-                        font-size:12px;
+                        font-size:11px;
                     }
                     
                     .deepu-hdr{
-                        font-size:12px;
+                        font-size:11px;
                     }
                     .deepu-pymt{
-                        font-size:12px;
+                        font-size:11px;
 
                     }
                     .deepu-cnt{
-                        font-size:12px;
+                        font-size:11px;
 
                     }
                     h5, .h5 {
-                        font-size: 13px !important;
+                        font-size: 12px !important;
                     }
                     h2, .h2{
-                        font-size: 15px !important;
+                        font-size: 13px !important;
                     }
                     .o_background_header {
                         display: flex;
@@ -108,7 +108,7 @@
                         text-align: left;
                     }
                     p{
-                        font-size:12px;
+                        font-size:11px;
                     }
                     .clearfix.mb8 {
                         display:none;
@@ -431,11 +431,38 @@
                             
                             </t>
                             <t t-else="">
-                                <p> KurierVogel Freight Broker LLC<br/>
-                                ADCB Bank, Al Riggha Road Branch<br/>
-                                Account number- (AED ) 12327224920001<br/>
-                                IBAN No: AE920030012327224920001
-                            </p>
+                                <t t-if="o.currency_selection == 'AED'">
+                                    <p> KurierVogel Freight Broker LLC<br/>
+                                    Abu Dhabi Commercial Bank (ADCB), Al Riggah Road Branch, Dubai – UAE<br/>
+                                    Account number- (AED ) 12327224920001<br/>
+                                    IBAN No: AE920030012327224920001<br/>
+                                    SWIFT Code: ADCBAEAA060
+                                    </p>
+                                </t>
+                                <t t-elif="o.currency_selection == 'USD'">
+                                    <p> Kurier Vogel Freight Broker LLC<br/>
+                                    Abu Dhabi Commercial Bank (ADCB), Al Riggah Road Branch, Dubai – UAE<br/>
+                                    Beneficiary A/C No (USD ): 12327224930001<br/>
+                                    IBAN No: AE430030012327224930001<br/>
+                                    Swift Code: ADCBAEAA060
+                                    </p>
+                                </t>
+                                <t t-elif="o.currency_selection == 'EUR'">
+                                    <p> Kurier Vogel Freight Broker LLC<br/>
+                                    Abu Dhabi Commercial Bank (ADCB), Al Riggah Road Branch, Dubai – UAE<br/>
+                                    Beneficiary A/C No (EUR ): 12327224930002<br/>
+                                    IBAN No: AE160030012327224930002<br/>
+                                    Swift Code: ADCBAEAA060
+                                    </p>
+                                </t>
+                                <t t-else="">
+                                    <p> KurierVogel Freight Broker LLC<br/>
+                                    Abu Dhabi Commercial Bank (ADCB), Al Riggah Road Branch, Dubai – UAE<br/>
+                                    Account number- (AED ) 12327224920001<br/>
+                                    IBAN No: AE920030012327224920001<br/>
+                                    SWIFT Code: ADCBAEAA060
+                                    </p>
+                                </t>
                             </t>
                             
                         </div>

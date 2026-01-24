@@ -27,6 +27,7 @@ class SaleOrder(models.Model):
     contact = fields.Many2one('res.partner',string='Contact Person')
     contact_person = fields.Char('Contact Person',compute='_compute_contact')
     po_number = fields.Char('PO Number')
+    email_ref_no = fields.Char('KV Email Ref No', index=True)
     typeOfShipment = fields.Many2one('site_settings.shipment_type',string="Type Of Shipment")
     shipmentTerms = fields.Many2one('site_settings.terms_of_shipment',string="Shipment Terms")
     cargoReadyDate = fields.Date('Cargo Ready Date')
@@ -56,12 +57,20 @@ class SaleOrder(models.Model):
         ('cancel', 'Cancelled'),
         ], string='Status', readonly=True, copy=False, index=True, default='draft',tracking=True)
     tracking_id = fields.Many2one('deepu.sale.tracking',string='Tracking ID')
-    is_delivered = fields.Boolean(string="Delivered",default=False)
+    is_delivered = fields.Boolean(string="Delivered", compute="_compute_is_delivered", store=True)
     oceanBillOfLading = fields.Char('Bill Of Lading')
     awb = fields.Char('Air Way Bill')
     billOfLading = fields.Char('Truck Way Bill')
     container_number = fields.Char(string="Container Number")
     is_transshipment = fields.Boolean(string="Is Transshipment",default=False)
+    
+    @api.model
+    def name_search(self, name='', args=None, operator='ilike', limit=100):
+        args = args or []
+        if name:
+            recs = self.search(['|', ('name', operator, name), ('email_ref_no', operator, name)] + args, limit=limit)
+            return recs.name_get()
+        return super().name_search(name=name, args=args, operator=operator, limit=limit)
     
     def action_tracking(self):
         
@@ -207,6 +216,11 @@ class SaleOrder(models.Model):
         invoice_vals['container_number'] = self.container_number
         
         return invoice_vals
+    
+    @api.depends('tracking_id.state')
+    def _compute_is_delivered(self):
+        for rec in self:
+            rec.is_delivered = rec.tracking_id.state == 'delivered' if rec.tracking_id else False
         
 
       
@@ -758,7 +772,7 @@ class Tracking(models.Model):
                 
                 # if rec.partner_id.name is False or rec.partner_id.email is False or rec.scheduled_departure is False or rec.scheduled_arrival is False or rec.name is False or rec.sale_order_id.portOfLoading is False or rec.sale_order_id.portOfDestination is False:
                 #     raise ValidationError("Customer Name , Customer Email , Scheduled Departure , Scheduled Arrival , Port of Loading & Destination must be provided")
-                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"etd":str(rec.scheduled_departure),"eta":str(rec.scheduled_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"pod":rec.sale_order_id.portOfDestination}
+                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"etd":str(rec.scheduled_departure),"eta":str(rec.scheduled_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"pod":rec.sale_order_id.portOfDestination,"po_number":rec.po_number or ""}
                 try:
                     result = requests.post(url,data=json.dumps(payload), headers=header)
                     if result.status_code == 200:
@@ -773,6 +787,7 @@ class Tracking(models.Model):
                         print(result.status_code)
                 except Exception as e:
                     print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
+                    _logger.error(f"Error in action_booked: {e}")
                     
     
             
@@ -791,20 +806,49 @@ class Tracking(models.Model):
                 header = {
                 "Content-Type":"application/json"
                 }
-                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"flight_vessel":rec.Flight_Vessel_Schedule,"atd":str(rec.actual_departure),"eta":str(rec.scheduled_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading}
-                result = requests.post(url,data=json.dumps(payload), headers=header)
-                if result.status_code == 200:
+                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"flight_vessel":rec.Flight_Vessel_Schedule,"atd":str(rec.actual_departure),"eta":str(rec.scheduled_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"po_number":rec.po_number or ""}
+                try:
+                    result = requests.post(url,data=json.dumps(payload), headers=header)
+                    if result.status_code == 200:
 
-                    res = json.loads(result.content.decode('UTF-8'))
+                        res = json.loads(result.content.decode('UTF-8'))
 
-                    if res['status']==True:
-                        rec.state = 'departed'
+                        if res['status']==True:
+                            rec.state = 'departed'
+                        else:
+                            print("Failed To change ")
                     else:
-                        print("Failed To change ")
+                        print(result.status_code)
+                except Exception as e:
+                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
+                    _logger.error(f"Error in action_departed: {e}")
     def action_transpotation(self):
         for rec in self:
             rec.prev_state = rec.state
-            rec.state = 'transit'
+            if rec.sent_action_email is False:
+                rec.state = 'transit'
+            else:
+                url = KURIER_HOST+"transpotation"
+                
+                header = {
+                "Content-Type":"application/json"
+                }
+                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"tracking_no":rec.name,"po_number":rec.po_number or ""}
+                try:
+                    result = requests.post(url,data=json.dumps(payload), headers=header)
+                    if result.status_code == 200:
+
+                        res = json.loads(result.content.decode('UTF-8'))
+
+                        if res['status']==True:
+                            rec.state = 'transit'
+                        else:
+                            print("Failed To change ")
+                    else:
+                        print(result.status_code)
+                except Exception as e:
+                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
+                    _logger.error(f"Error in action_transpotation: {e}")
     def action_arrived(self):
         for rec in self:
             rec.prev_state = rec.state
@@ -818,25 +862,77 @@ class Tracking(models.Model):
                 header = {
                 "Content-Type":"application/json"
                 }
-                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"ata":str(rec.actual_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"pod":rec.sale_order_id.portOfDestination}
-                result = requests.post(url,data=json.dumps(payload), headers=header)
-                if result.status_code == 200:
+                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"ata":str(rec.actual_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"pod":rec.sale_order_id.portOfDestination,"po_number":rec.po_number or ""}
+                try:
+                    result = requests.post(url,data=json.dumps(payload), headers=header)
+                    if result.status_code == 200:
   
-                    res = json.loads(result.content.decode('UTF-8'))
+                        res = json.loads(result.content.decode('UTF-8'))
     
-                    if res['status']==True:
-                        rec.state = 'arrived'
+                        if res['status']==True:
+                            rec.state = 'arrived'
+                        else:
+                            print("Failed To change ")
                     else:
-                        print("Failed To change ")
+                        print(result.status_code)
+                except Exception as e:
+                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
+                    _logger.error(f"Error in action_arrived: {e}")
     def action_clearance(self):
         for rec in self:
             rec.prev_state = rec.state
-            rec.state = 'clearance'
+            if rec.sent_action_email is False:
+                rec.state = 'clearance'
+            else:
+                url = KURIER_HOST+"clearance"
+                
+                header = {
+                "Content-Type":"application/json"
+                }
+                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"tracking_no":rec.name,"po_number":rec.po_number or ""}
+                try:
+                    result = requests.post(url,data=json.dumps(payload), headers=header)
+                    if result.status_code == 200:
+
+                        res = json.loads(result.content.decode('UTF-8'))
+
+                        if res['status']==True:
+                            rec.state = 'clearance'
+                        else:
+                            print("Failed To change ")
+                    else:
+                        print(result.status_code)
+                except Exception as e:
+                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
+                    _logger.error(f"Error in action_clearance: {e}")
             
     def action_out_for_delivery(self):
         for rec in self:
             rec.prev_state = rec.state
-            rec.state = 'out'
+            if rec.sent_action_email is False:
+                rec.state = 'out'
+            else:
+                url = KURIER_HOST+"out_for_delivery"
+                
+                header = {
+                "Content-Type":"application/json"
+                }
+                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"tracking_no":rec.name,"po_number":rec.po_number or ""}
+                try:
+                    result = requests.post(url,data=json.dumps(payload), headers=header)
+                    if result.status_code == 200:
+
+                        res = json.loads(result.content.decode('UTF-8'))
+
+                        if res['status']==True:
+                            rec.state = 'out'
+                        else:
+                            print("Failed To change ")
+                    else:
+                        print(result.status_code)
+                except Exception as e:
+                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
+                    _logger.error(f"Error in action_out_for_delivery: {e}")
     
     def action_delivered(self):
         # date_of_delivery
@@ -852,18 +948,24 @@ class Tracking(models.Model):
                 header = {
                 "Content-Type":"application/json"
                 }
-                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"ata":str(rec.actual_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"pod":rec.sale_order_id.portOfDestination,"delivered_date":str(rec.date_of_delivery)}
-                result = requests.post(url,data=json.dumps(payload), headers=header)
-                if result.status_code == 200:
+                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"ata":str(rec.actual_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"pod":rec.sale_order_id.portOfDestination,"delivered_date":str(rec.date_of_delivery),"po_number":rec.po_number or ""}
+                try:
+                    result = requests.post(url,data=json.dumps(payload), headers=header)
+                    if result.status_code == 200:
                     
-                    res = json.loads(result.content.decode('UTF-8'))
+                        res = json.loads(result.content.decode('UTF-8'))
                     
-                    if res['status']==True:
-                        rec.state = 'delivered'
-                        rec.sale_order_id.is_delivered = True
-                        rec.sale_order_id.new_state = 'delivered'
+                        if res['status']==True:
+                            rec.state = 'delivered'
+                            rec.sale_order_id.is_delivered = True
+                            rec.sale_order_id.new_state = 'delivered'
+                        else:
+                            print("Failed To change ")
                     else:
-                        print("Failed To change ")
+                        print(result.status_code)
+                except Exception as e:
+                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
+                    _logger.error(f"Error in action_delivered: {e}")
             
     def action_cencel(self):
         for rec in self:
