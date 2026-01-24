@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_soa_search" model="ir.ui.view">
+        <field name="name">account.soa.search</field>
+        <field name="model">account.soa</field>
+        <field name="arch" type="xml">
+            <search string="Search Statement of Account">
+                <field name="partner_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_account_soa_tree" model="ir.ui.view">
+        <field name="name">account.soa.tree</field>
+        <field name="model">account.soa</field>
+        <field name="arch" type="xml">
+            <tree string="Statement of Account" create="false" delete="false" edit="false" export_xlsx="1">
+                <field name="partner_id"/>
+                <field name="credit_limit" sum="Total" optional="show"/>
+                <field name="credit_days" optional="show"/>
+                <field name="paid_invoice_count" sum="Total" optional="show"/>
+                <field name="partial_invoice_count" sum="Total" optional="show"/>
+                <field name="unpaid_invoice_count" sum="Total" optional="show"/>
+                <field name="total_due" sum="Total" optional="show"/>
+                <field name="days_0_30" sum="Total" optional="show"/>
+                <field name="days_31_60" sum="Total" optional="show"/>
+                <field name="days_61_90" sum="Total" optional="show"/>
+                <field name="days_91_120" sum="Total" optional="show"/>
+                <field name="days_121_150" sum="Total" optional="hide"/>
+                <field name="days_151_180" sum="Total" optional="hide"/>
+                <field name="days_above_180" sum="Total" optional="show"/>
+                <button name="action_view_detail" type="object" string="View Details" class="oe_highlight"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_account_soa_detail_form" model="ir.ui.view">
+        <field name="name">account.soa.detail.form</field>
+        <field name="model">account.soa</field>
+        <field name="arch" type="xml">
+            <form string="Statement of Account Detail" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_export_detail_xlsx" 
+                            string="Export Detail" 
+                            type="object" 
+                            class="oe_highlight"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="partner_id" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="credit_limit"/>
+                            <field name="credit_days"/>
+                            <field name="total_due"/>
+                        </group>
+                        <group>
+                            <field name="paid_invoice_count"/>
+                            <field name="partial_invoice_count"/>
+                            <field name="unpaid_invoice_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Outstanding Invoices">
+                            <field name="invoice_line_ids" readonly="1">
+                                <tree decoration-danger="payment_state == 'not_paid'" 
+                                      decoration-warning="payment_state == 'partial'">
+                                    <field name="name" string="Invoice Number"/>
+                                    <field name="invoice_date"/>
+                                    <field name="invoice_date_due"/>
+                                    <field name="amount_total" string="Invoice Amount" sum="Total"/>
+                                    <field name="amount_residual" string="Due Amount" sum="Due"/>
+                                    <field name="amount_total" invisible="1"/>
+                                    <field name="amount_residual" invisible="1"/>
+                                    <field name="payment_state" string="Payment Status"/>
+                                    <field name="state" string="Status"/>
+                                </tree>
+                            </field>
+                            <group class="oe_subtotal_footer">
+                                <field name="total_due" string="Total Outstanding"/>
+                            </group>
+                        </page>
+                        <page string="Aging Analysis">
+                            <group>
+                                <group>
+                                    <field name="days_0_30"/>
+                                    <field name="days_31_60"/>
+                                    <field name="days_61_90"/>
+                                </group>
+                                <group>
+                                    <field name="days_91_120"/>
+                                    <field name="days_121_150"/>
+                                    <field name="days_151_180"/>
+                                    <field name="days_above_180"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_account_soa" model="ir.actions.act_window">
+        <field name="name">Statement of Account</field>
+        <field name="res_model">account.soa</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_account_soa_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Statement of Account found
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_account_soa"
+              name="Statement of Account"
+              parent="account.menu_finance_receivables"
+              action="action_account_soa"
+              sequence="5"/>
+</odoo> 
