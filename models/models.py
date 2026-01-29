@@ -10,8 +10,8 @@ import requests
 import logging
 _logger = logging.getLogger(__name__)
 
-KURIER_HOST = 'http://127.0.0.1:8000/'
-#KURIER_HOST = 'https://kuriervogel.com/'
+#KURIER_HOST = 'http://127.0.0.1:8000/'
+KURIER_HOST = 'https://kuriervogel.com/'
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
@@ -785,6 +785,7 @@ class Tracking(models.Model):
                 payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"etd":str(rec.scheduled_departure),"eta":str(rec.scheduled_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"pod":rec.sale_order_id.portOfDestination,"po_number":rec.po_number or ""}
                 try:
                     result = requests.post(url,data=json.dumps(payload), headers=header)
+                    print(">>>>>>>>>>>>>>>>>>>>>>>>result",result)
                     if result.status_code == 200:
 
                         res = json.loads(result.content.decode('UTF-8'))
@@ -838,14 +839,15 @@ class Tracking(models.Model):
             if rec.sent_action_email is False:
                 rec.state = 'transit'
             else:
-                url = KURIER_HOST+"transpotation"
-                
+                url = KURIER_HOST + "transportation"
                 header = {
-                "Content-Type":"application/json"
+                    "Content-Type": "application/json",
+                    "User-Agent": "Odoo/15.0 (KurierCRM)",
                 }
-                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"tracking_no":rec.name,"po_number":rec.po_number or ""}
+                payload = {"name": rec.partner_id.name, "email": rec.partner_id.email, "tracking_no": rec.name, "po_number": rec.po_number or ""}
                 try:
-                    result = requests.post(url,data=json.dumps(payload), headers=header)
+                    _logger.info("action_transportation payload: %s", payload)
+                    result = requests.post(url, data=json.dumps(payload), headers=header, timeout=30)
                     if result.status_code == 200:
 
                         res = json.loads(result.content.decode('UTF-8'))
@@ -855,10 +857,9 @@ class Tracking(models.Model):
                         else:
                             print("Failed To change ")
                     else:
-                        print(result.status_code)
+                        _logger.warning("action_transportation API returned %s: %s", result.status_code, result.content[:500] if result.content else "")
                 except Exception as e:
-                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
-                    _logger.error(f"Error in action_transpotation: {e}")
+                    _logger.error("Error in action_transportation: %s", e, exc_info=True)
     def action_arrived(self):
         for rec in self:
             rec.prev_state = rec.state
@@ -875,9 +876,11 @@ class Tracking(models.Model):
                 payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"ata":str(rec.actual_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"pod":rec.sale_order_id.portOfDestination,"po_number":rec.po_number or ""}
                 try:
                     result = requests.post(url,data=json.dumps(payload), headers=header)
+                    print(">>>>>>>>>>>>>>>>>>>>>>>>result",result)
                     if result.status_code == 200:
   
                         res = json.loads(result.content.decode('UTF-8'))
+                        print(">>>>>>>>>>>>>>>>>>>>>>>>res",res)
     
                         if res['status']==True:
                             rec.state = 'arrived'
@@ -902,9 +905,11 @@ class Tracking(models.Model):
                 payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"tracking_no":rec.name,"po_number":rec.po_number or ""}
                 try:
                     result = requests.post(url,data=json.dumps(payload), headers=header)
+                    print(">>>>>>>>>>>>>>>>>>>>>>>>result",result)
                     if result.status_code == 200:
 
                         res = json.loads(result.content.decode('UTF-8'))
+                        print(">>>>>>>>>>>>>>>>>>>>>>>>res",res)
 
                         if res['status']==True:
                             rec.state = 'clearance'
@@ -930,9 +935,11 @@ class Tracking(models.Model):
                 payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"tracking_no":rec.name,"po_number":rec.po_number or ""}
                 try:
                     result = requests.post(url,data=json.dumps(payload), headers=header)
+                    print(">>>>>>>>>>>>>>>>>>>>>>>>result",result)
                     if result.status_code == 200:
 
                         res = json.loads(result.content.decode('UTF-8'))
+                        print(">>>>>>>>>>>>>>>>>>>>>>>>res",res)
 
                         if res['status']==True:
                             rec.state = 'out'
@@ -961,9 +968,11 @@ class Tracking(models.Model):
                 payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"ata":str(rec.actual_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"pod":rec.sale_order_id.portOfDestination,"delivered_date":str(rec.date_of_delivery),"po_number":rec.po_number or ""}
                 try:
                     result = requests.post(url,data=json.dumps(payload), headers=header)
+                    print(">>>>>>>>>>>>>>>>>>>>>>>>result",result)
                     if result.status_code == 200:
                     
                         res = json.loads(result.content.decode('UTF-8'))
+                        print(">>>>>>>>>>>>>>>>>>>>>>>>res",res)
                     
                         if res['status']==True:
                             rec.state = 'delivered'
