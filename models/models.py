@@ -10,8 +10,8 @@ import requests
 import logging
 _logger = logging.getLogger(__name__)
 
-#KURIER_HOST = 'http://127.0.0.1:8000/'
-KURIER_HOST = 'https://kuriervogel.com/'
+KURIER_HOST = 'http://127.0.0.1:8000/'
+# KURIER_HOST = 'https://kuriervogel.com/'
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
