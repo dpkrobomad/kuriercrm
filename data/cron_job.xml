@@ -13,5 +13,17 @@
             <field name="interval_type">hours</field>
             <field name="numbercall">-1</field> <!-- Runs indefinitely -->
         </record>
+
+        <record id="ir_cron_shipsgo_tracking_check" model="ir.cron">
+            <field name="name">ShipsGo: Check and set is_shipsgo_tracking</field>
+            <field name="model_id" ref="model_shipsgo_tracking_update"/>
+            <field name="state">code</field>
+            <field name="code">model.run_shipsgo_check()</field>
+            <field name="active" eval="True"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">4</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+        </record>
     </data>
 </odoo>
