@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_seaway_bill_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <style>
+                        /* Reduce top/bottom spacing (red arrow areas) */
+                        body, #wrapwrap, main, .article { margin-top: 0 !important; margin-bottom: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; }
+                        .page { padding-top: 0 !important; padding-bottom: 0 !important; }
+                    </style>
+                    <t t-set="base_url" t-value="env['ir.config_parameter'].sudo().get_param('web.base.url') or 'http://localhost:8069/'"/>
+                    <t t-set="logo_url" t-value="(base_url or '').rstrip('/') + '/deepu_sale/static/description/logo.png'"/>
+                    <t t-set="bill_type_label" t-value="dict(doc._fields['bill_type']._description_selection(doc.env)).get(doc.bill_type, doc.bill_type or 'DRAFT SEAWAY B/L')"/>
+                    <t t-set="fcl_label" t-value="{'fcl_fcl': 'FCL_TO_FCL', 'lcl_fcl': 'LCL_TO_FCL', 'fcl_lcl': 'FCL_TO_LCL'}.get(doc.fcl_lcl_option, doc.fcl_lcl_option or '')"/>
+                    <t t-set="place_str" t-value="doc.place_of_issue_country_id and doc.place_of_issue_country_id.name or ''"/>
+                    <t t-set="freight_prepaid_display" t-value="(doc.freight_to_be_paid_at_id and doc.freight_to_be_paid_at_id.name in ('Freight Prepaid', 'Freight Collect')) and doc.freight_to_be_paid_at_id.name or ''"/>
+                    <t t-set="no_of_bl_header" t-value="'NO. OF BL COPY' if doc.bill_type == 'non_negotiable_bl_copy' else 'NO. OF ORIG. BL'"/>
+                    <t t-set="no_of_bl_value" t-value="3 if doc.bill_type == 'non_negotiable_bl_copy' else doc.no_of_orig_bl"/>
+                    <t t-set="place_and_date" t-value="place_str + (', ' + doc.issued_date.strftime('%d.%m.%Y') if doc.issued_date else place_str)"/>
+                    <div class="page" style="font-family: sans-serif; padding: 0 10px; max-width: 100%; width: 100%; font-size: 10px;">
+                        <!-- First page: wrapper with fixed height so watermark centers on page 1 -->
+                        <div style="position: relative; min-height: 1120px;">
+                        <t t-if="doc.bill_type == 'non_negotiable_bl_copy'">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; height: 1120px; display: flex; align-items: center; justify-content: center; z-index: 0; pointer-events: none;">
+                                <span style="transform: rotate(-35deg); font-size: 5rem; font-weight: bold; color: #000; opacity: 0.2; white-space: nowrap;">Non Negotiable COPY</span>
+                            </div>
+                        </t>
+                        <div style="position: relative; z-index: 1;">
+                        <!-- Letterhead: Logo at top -->
+                        <div style="text-align: left; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #ccc;">
+                            <img t-att-src="logo_url" alt="Logo" style="max-height: 60px; display: block;"/>
+                        </div>
+
+                        <!-- Top section: Left = Shipper/Consignee/Notify (one box, no internal boxes) | Right = B/L title + number, terms, logo, company -->
+                        <!-- Borders align with voyage + line items tables below -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 0; table-layout: fixed;">
+                            <tbody>
+                                <tr>
+                                    <!-- Left column: Shipper/Consignee/Notify - vertical stack, equal height sections -->
+                                    <td style="width: 50%; border: 1px solid #000; padding: 0; vertical-align: top;">
+                                        <table style="width: 100%; border-collapse: collapse; border: none; table-layout: fixed;">
+                                            <tr><td style="padding: 6px 10px; font-weight: bold;">SHIPPER</td></tr>
+                                            <tr><td style="border-bottom: 1px solid #000; padding: 10px; height: 90px; vertical-align: top; white-space: pre-wrap;"><t t-esc="doc.shipper or ''"/></td></tr>
+                                            <tr><td style="padding: 6px 10px; font-weight: bold;">CONSIGNEE</td></tr>
+                                            <tr><td style="border-bottom: 1px solid #000; padding: 10px; height: 90px; vertical-align: top; white-space: pre-wrap;"><t t-esc="doc.consignee or ''"/></td></tr>
+                                            <tr><td style="padding: 6px 10px; font-weight: bold;">NOTIFY PARTY</td></tr>
+                                            <tr><td style="padding: 10px; height: 90px; vertical-align: top; white-space: pre-wrap;"><t t-esc="doc.notify_party or ''"/></td></tr>
+                                        </table>
+                                    </td>
+                                    <!-- Right column: B/L title + number, For delivery + agent address -->
+                                    <td style="width: 50%; border: 1px solid #000; padding: 12px; vertical-align: top;">
+                                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                                            <tr>
+                                                <td style="width: 60%; padding: 0 12px 0 0; vertical-align: top;">
+                                                    <div style="font-weight: bold; font-size: .9rem; margin-bottom: 0.35rem;"><t t-esc="bill_type_label"/></div>
+                                                    <div style="font-size: 0.6rem; margin-bottom: 0.2rem;">THROUGH BILL OF LADING</div>
+                                                    <div style="font-size: 0.6rem; margin-bottom: 0.5rem;">MULTIMODAL BILL OF LADING</div>
+                                                    <div style="font-size: 0.6rem; line-height: 1.3;">BILL OF LADING NEGOTIABLE UNLESS CONSIGNED 'TO ORDER'</div>
+                                                </td>
+                                                <td style="width: 40%; min-width: 140px; padding: 0; vertical-align: top; text-align: right;">
+                                                    <div style="border: 2px solid #000; padding: 10px 14px; display: inline-block; font-weight: bold; text-align: left; white-space: nowrap; min-width: 130px;">
+                                                        <div style="font-size: 0.75rem; margin-bottom: 4px; border-bottom: 1px solid #000; padding-bottom: 4px;">BILL OF LADING NUMBER</div>
+                                                        <div style="font-size: 1rem; white-space: nowrap;"><t t-esc="doc.bl_number or ''"/></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <div style="margin-top: 1.25rem;">
+                                            <div style=" font-size: 0.6rem; font-weight: bold; margin-bottom: 0.35rem;">FOR DELIVERY OF GOODS PLEASE APPLY TO:</div>
+                                            <div style="font-size: 0.6rem; line-height: 1.4; text-align: left; white-space: pre-wrap;"><t t-esc="doc.delivery_agent or ''"/></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Shipment route table - borders touch top section and line items -->
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 0; margin-top: -1px; table-layout: fixed;">
+                            <tbody>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 8px; width: 25%; font-weight: bold;">PRE-CARRIAGE BY</td>
+                                    <td style="border: 1px solid #000; padding: 8px; width: 25%; font-weight: bold;">PLACE OF RECEIPT</td>
+                                    <td style="border: 1px solid #000; padding: 8px; width: 25%; font-weight: bold;">FREIGHT TO BE PAID AT</td>
+                                    <td style="border: 1px solid #000; padding: 8px; width: 25%; font-weight: bold;"><t t-esc="no_of_bl_header"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 8px;"><t t-esc="doc.pre_carriage_by or ''"/></td>
+                                    <td style="border: 1px solid #000; padding: 8px;"><t t-esc="doc.place_of_receipt or ''"/></td>
+                                    <td style="border: 1px solid #000; padding: 8px;"><t t-esc="doc.freight_to_be_paid_at_id and doc.freight_to_be_paid_at_id.name or ''"/></td>
+                                    <td style="border: 1px solid #000; padding: 8px;"><t t-esc="'0 (ZERO)' if no_of_bl_value == 0 else str(no_of_bl_value)"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">VESSEL/VOYAGE NO</td>
+                                    <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">PORT OF LOADING</td>
+                                    <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">PORT OF DISCHARGE</td>
+                                    <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">FINAL PLACE OF DELIVERY</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 8px;"><t t-esc="doc.vessel_voyage_no or ''"/></td>
+                                    <td style="border: 1px solid #000; padding: 8px;"><t t-esc="doc.pol or ''"/></td>
+                                    <td style="border: 1px solid #000; padding: 8px;"><t t-esc="doc.pod or ''"/></td>
+                                    <td style="border: 1px solid #000; padding: 8px;"><t t-esc="doc.final_place_of or ''"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Cargo line items: first chunk on page 1 (no spacer), then terms+bottom on same page; overflow chunks on next pages with table header + rows -->
+                        <t t-set="chunk_info" t-value="(doc_chunks or {}).get(doc.id, {'chunks': [[]], 'total_sheets': 1})"/>
+                        <t t-set="line_chunks" t-value="chunk_info.get('chunks', [[]]) or [[]]"/>
+                        <t t-set="total_sheets" t-value="chunk_info.get('total_sheets', 1)"/>
+                        <!-- First chunk: table only (no big spacer), so terms and bottom stay on page 1 -->
+                        <t t-set="first_chunk" t-value="line_chunks[0] if line_chunks else []"/>
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-top: -1px; table-layout: fixed;">
+                            <thead>
+                                <tr style="background: #f0f0f0;">
+                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 18%;">MARKS AND NOS CONTAINER AND SEALS</th>
+                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">NO AND KIND OF PACKAGES</th>
+                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 35%;">DESCRIPTION OF PACKAGES AND GOODS, SAID TO CONTAIN</th>
+                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">GROSS WEIGHT (KGS)</th>
+                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">NET WEIGHT (KGS)</th>
+                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 11%;">MEASUREMENT (CBM)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-if="first_chunk">
+                                    <t t-foreach="first_chunk" t-as="line">
+                                        <tr>
+                                            <td style="padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="(line.marks_and_nos_container or '') + (' SEAL: ' + line.seals if line.seals else '')"/></td>
+                                            <td style="padding: 10px 8px; vertical-align: top;"><t t-esc="line.no_and_kind_of_package or ''"/></td>
+                                            <td style="padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="line.description or ''"/></td>
+                                            <td style="padding: 10px 8px; text-align: right;"><t t-esc="'%.3f' % line.gross_weight if line.gross_weight else ''"/></td>
+                                            <td style="padding: 10px 8px; text-align: right;"><t t-esc="'%.3f' % line.net_weight if line.net_weight else ''"/></td>
+                                            <td style="padding: 10px 8px; text-align: right;"><t t-esc="'%.3f' % line.measurement if line.measurement else ''"/></td>
+                                        </tr>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <tr>
+                                        <td colspan="6" style="border: 1px solid #000; padding: 20px; text-align: center; color: #666;">No line items</td>
+                                    </tr>
+                                </t>
+                                <tr><td colspan="6" style="padding: 0; height: 180px; vertical-align: top;"></td></tr>
+                                <tr style="background: #f8f8f8;">
+                                    <td colspan="6" style="border: 1px solid #000; border-top: none; padding: 8px 12px; font-size: 9px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                                            <span>Sheet 1 of <t t-esc="total_sheets"/></span>
+                                            <span t-if="fcl_label" style="font-weight: bold;"><t t-esc="fcl_label"/></span>
+                                            <span t-if="freight_prepaid_display"><t t-esc="freight_prepaid_display"/></span>
+                                            <span>SHIPPED ON BOARD <t t-esc="doc.shipped_on_board.strftime('%d.%m.%Y') if doc.shipped_on_board else ''"/></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Terms, bottom section and footer: keep together on same page -->
+                        <div style="page-break-inside: avoid;">
+                        <!-- Terms and conditions - larger font, no margin before next table -->
+                        <div style="border: 1px solid #000; padding: 12px; margin-bottom: 0; font-size: 10px; line-height: 1.4; border-top: none;">
+                            RECEIVED by the Carrier the Goods as specified above in apparent good order and condition unless otherwise stated, to be transported to such place as agreed, authorised or permitted herein and subject to all the terms and conditions appearing on the front and reverse of this Bill of Lading to which the Merchant agrees by accepting this Bill of Lading, any local privileges and customs notwithstanding.The particulars given above as stated by the shipper and the weight, measure, quantity, condition, contents and value of the Goods are unknown to the Carrier.
+                        </div>
+
+                        <!-- Bottom section: Place of Issue (30%) | data (20%) | Date of Issue (25%) | data (25%); Row 2: 70% Kurier Vogel | 30% Stamp, no right outline -->
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; border-top: none; border-right: none; margin-bottom: 1rem;">
+                            <colgroup>
+                                <col style="width: 30%"/><col style="width: 20%"/><col style="width: 25%"/><col style="width: 25%"/>
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <td style="border: 1px solid #000; border-right: 1px solid #000; padding: 8px 12px; font-weight: bold; vertical-align: middle; text-align: left;">Place of Issue</td>
+                                    <td style="border: 1px solid #000; border-right: 1px solid #000; padding: 8px 12px; vertical-align: middle; text-align: left;"><t t-esc="place_str"/></td>
+                                    <td style="border: 1px solid #000; border-right: 1px solid #000; padding: 8px 12px; font-weight: bold; vertical-align: middle; text-align: left;">Date of Issue</td>
+                                    <td style="border: 1px solid #000; padding: 8px 12px; vertical-align: middle; text-align: left;"><t t-esc="doc.issued_date.strftime('%d.%m.%Y') if doc.issued_date else ''"/></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="border: 1px solid #000; border-right: 1px solid #000; padding: 12px; vertical-align: top; width: 70%;">
+                                        <img t-att-src="logo_url" alt="Logo" style="max-height: 45px; display: block; margin-bottom: 0.5rem;"/>
+                                        <div style=" line-height: 1.5; ">
+                                            Kurier Vogel Freight Broker LLC,<br/>
+                                            Al Fajer Complex, 1st Floor, Off. No. 105/02,<br/>
+                                            P.O. Box 124432, Oud Metha, Dubai, +97142597606<br/>
+                                            United Arab Emirates.
+                                        </div>
+                                    </td>
+                                    <td colspan="2" style="border: 1px solid #000; border-right: 1px solid #000; padding: 12px; vertical-align: bottom; text-align: right; width: 30%;">
+                                        <div style="font-weight: bold; margin-bottom: 0.25rem;">FOR KURIER VOGEL FREIGHT BROKER LLC</div>
+                                        <div style="font-weight: bold; margin-bottom: 0.5rem;">AUTHORIZED SIGNATORY AS AGENTS</div>
+                                        <div style="border-bottom: 1px solid #000; width: 100%; max-width: 160px; height: 32px; margin-left: auto;"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Footer -->
+                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ccc; text-align: center; font-size: 0.85rem; color: #666;">
+                            Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606
+                        </div>
+                        </div>
+                        </div>
+
+                        <!-- Overflow line items: continuation pages (full-height layout, footer + Sheet stuck to bottom) -->
+                        <t t-foreach="line_chunks" t-as="chunk">
+                            <t t-if="chunk_index &gt; 0">
+                                <t t-set="cont_sheet_num" t-value="chunk_index + 1"/>
+                                <div style="page-break-before: always; position: relative; min-height: 1120px;">
+                                    <t t-if="doc.bill_type == 'non_negotiable_bl_copy'">
+                                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 1120px; display: flex; align-items: center; justify-content: center; z-index: 0; pointer-events: none;">
+                                            <span style="transform: rotate(-35deg); font-size: 5rem; font-weight: bold; color: #000; opacity: 0.2; white-space: nowrap;">Non Negotiable COPY</span>
+                                        </div>
+                                    </t>
+                                    <div style="position: relative; z-index: 1;">
+                                    <!-- Logo header -->
+                                    <div style="text-align: left; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #ccc;">
+                                        <img t-att-src="logo_url" alt="Logo" style="max-height: 60px; display: block;"/>
+                                    </div>
+                                    <!-- Table: 90% of page (incl. logo) = ~900px fixed height for A4 -->
+                                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-top: 0; table-layout: fixed;">
+                                            <thead>
+                                                <tr style="background: #f0f0f0;">
+                                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 18%;">MARKS AND NOS CONTAINER AND SEALS</th>
+                                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">NO AND KIND OF PACKAGES</th>
+                                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 35%;">DESCRIPTION OF PACKAGES AND GOODS, SAID TO CONTAIN</th>
+                                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">GROSS WEIGHT (KGS)</th>
+                                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">NET WEIGHT (KGS)</th>
+                                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 11%;">MEASUREMENT (CBM)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-foreach="chunk" t-as="line">
+                                                    <tr>
+                                                        <td style="padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="(line.marks_and_nos_container or '') + (' SEAL: ' + line.seals if line.seals else '')"/></td>
+                                                        <td style="padding: 10px 8px; vertical-align: top;"><t t-esc="line.no_and_kind_of_package or ''"/></td>
+                                                        <td style="padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="line.description or ''"/></td>
+                                                        <td style="padding: 10px 8px; text-align: right;"><t t-esc="'%.3f' % line.gross_weight if line.gross_weight else ''"/></td>
+                                                        <td style="padding: 10px 8px; text-align: right;"><t t-esc="'%.3f' % line.net_weight if line.net_weight else ''"/></td>
+                                                        <td style="padding: 10px 8px; text-align: right;"><t t-esc="'%.3f' % line.measurement if line.measurement else ''"/></td>
+                                                    </tr>
+                                                </t>
+                                                <tr><td colspan="6" style="padding: 0; height: 1000px; vertical-align: top;"></td></tr>
+                                                <tr style="background: #f8f8f8;">
+                                                    <td colspan="6" style="border: 1px solid #000; border-top: none; padding: 8px 12px; font-size: 9px;">
+                                                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                                                            <span>Sheet <t t-esc="cont_sheet_num"/> of <t t-esc="total_sheets"/></span>
+                                                            <span t-if="fcl_label" style="font-weight: bold;"><t t-esc="fcl_label"/></span>
+                                                            <span t-if="freight_prepaid_display"><t t-esc="freight_prepaid_display"/></span>
+                                                            <span>SHIPPED ON BOARD <t t-esc="doc.shipped_on_board.strftime('%d.%m.%Y') if doc.shipped_on_board else ''"/></span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    <!-- Footer -->
+                                    <div style="margin-top: 0; padding-top: 1rem; border-top: 1px solid #ccc; text-align: center; font-size: 0.85rem; color: #666;">
+                                        Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606
+                                    </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </t>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <report
+        id="action_report_seaway_bill"
+        string="Bill of Lading (Preview)"
+        model="seaway.bill.wizard"
+        report_type="qweb-html"
+        file="deepu_sale.report_seaway_bill_template"
+        name="deepu_sale.report_seaway_bill_template"
+        print_report_name="'Bill of Lading - %s' % (object.bl_number or 'Draft')"
+    />
+    <report
+        id="action_report_seaway_bill_pdf"
+        string="Bill of Lading (PDF)"
+        model="seaway.bill.wizard"
+        report_type="qweb-pdf"
+        file="deepu_sale.report_seaway_bill_template"
+        name="deepu_sale.report_seaway_bill_template"
+        print_report_name="'Bill of Lading - %s' % (object.bl_number or 'Draft')"
+    />
+    <!-- Wrapper template for seaway.bill (same content, different report model) -->
+    <template id="report_seaway_bill_document">
+        <t t-call="deepu_sale.report_seaway_bill_template"/>
+    </template>
+
+    <report
+        id="action_report_seaway_bill_form_pdf"
+        string="Bill of Lading (PDF)"
+        model="seaway.bill"
+        report_type="qweb-pdf"
+        file="deepu_sale.report_seaway_bill_document"
+        name="deepu_sale.report_seaway_bill_document"
+        print_report_name="'Bill of Lading - %s' % (object.bl_number or 'Draft')"
+    />
+</odoo>

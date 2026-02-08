@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="0">
+    <!-- Run on every upgrade so countries appear in Freight To Be Paid At / FREIGHT PREPAID dropdown -->
+    <function model="seaway.freight.option" name="sync_countries"/>
+</odoo>

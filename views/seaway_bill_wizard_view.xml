@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_seaway_bill_wizard_form" model="ir.ui.view">
+        <field name="name">seaway.bill.wizard.form</field>
+        <field name="model">seaway.bill.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Bill of Lading">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="sale_order_id" invisible="1"/>
+                            <field name="seaway_bill_id" invisible="1"/>
+                            <field name="bl_number" readonly="1" placeholder="Bill of Lading Number"/>
+                            <field name="shipper" widget="text"/>
+                            <field name="consignee" widget="text"/>
+                            <field name="bill_type"/>
+                            <field name="notify_party" widget="text"/>
+                            <field name="pre_carriage_by"/>
+                            <field name="place_of_receipt"/>
+                            <field name="freight_to_be_paid_at_id" options="{'no_create': True}"/>
+                            <field name="no_of_orig_bl"/>
+                            <field name="vessel_voyage_no"/>
+                            <field name="pol"/>
+                            <field name="pod"/>
+                        </group>
+                        <group>
+                            <field name="final_place_of"/>
+                            <field name="fcl_lcl_option"/>
+                            <field name="shipped_on_board" widget="datetime"/>
+                            <field name="delivery_agent" widget="text"/>
+                            <field name="place_of_issue_country_id"/>
+                            <field name="issued_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Line Items" name="line_items">
+                            <field name="line_ids">
+                                <tree editable="bottom">
+                                    <field name="marks_and_nos_container" widget="text"/>
+                                    <field name="seals" widget="text"/>
+                                    <field name="no_and_kind_of_package" widget="text"/>
+                                    <field name="description"/>
+                                    <field name="gross_weight"/>
+                                    <field name="net_weight"/>
+                                    <field name="measurement"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button string="Preview Bill of Lading" type="object" name="action_preview_seaway_bill" class="btn-secondary"/>
+                    <button string="Print Bill of Lading" type="object" name="action_print_seaway_bill_pdf" class="btn-secondary"/>
+                    <button string="Save" type="object" name="action_save" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

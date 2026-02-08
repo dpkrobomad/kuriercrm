@@ -16,3 +16,9 @@ deepu_sale.access_deepu_sale_contact,access_deepu_sale_contact,deepu_sale.model_
 deepu_sale.access_deepu_tracking_blcontainer,access_deepu_tracking_blcontainer,deepu_sale.model_deepu_tracking_blcontainer,base.group_user,1,0,0,0
 access_pod_wizard_user,pod.wizard user access,model_pod_wizard,base.group_user,1,1,1,1
 access_create_account_wizard,create.account.wizard,model_create_account_wizard,base.group_user,1,1,1,1
+access_seaway_bill_user,seaway.bill.user,model_seaway_bill,base.group_user,1,1,1,1
+access_seaway_bill_line_user,seaway.bill.line.user,model_seaway_bill_line,base.group_user,1,1,1,1
+access_seaway_freight_option_user,seaway.freight.option.user,model_seaway_freight_option,base.group_user,1,1,1,1
+access_seaway_bill_wizard_user,seaway.bill.wizard.user,model_seaway_bill_wizard,base.group_user,1,1,1,1
+access_seaway_bill_wizard_line_user,seaway.bill.wizard.line.user,model_seaway_bill_wizard_line,base.group_user,1,1,1,1
+access_shipsgo_tracking_update_user,shipsgo.tracking.update.user,model_shipsgo_tracking_update,base.group_user,1,1,1,1

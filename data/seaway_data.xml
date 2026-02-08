@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Sequence for Bill of Lading Number: KVSWBL-2024-00001 -->
+    <record id="sequence_seaway_bill" model="ir.sequence">
+        <field name="name">Seaway Bill Number</field>
+        <field name="code">seaway.bill</field>
+        <field name="active" eval="True"/>
+        <field name="prefix">KVSWBL-%(year)s-</field>
+        <field name="padding">4</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+    </record>
+
+    <!-- Freight options: Freight Prepaid, Freight Collect (countries synced via init) -->
+    <record id="freight_option_prepaid" model="seaway.freight.option">
+        <field name="name">Freight Prepaid</field>
+        <field name="sequence">1</field>
+    </record>
+    <record id="freight_option_collect" model="seaway.freight.option">
+        <field name="name">Freight Collect</field>
+        <field name="sequence">2</field>
+    </record>
+
+    <!-- Countries are synced by data/seaway_sync_countries.xml (runs on every upgrade) -->
+</odoo>

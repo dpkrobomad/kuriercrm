@@ -93,6 +93,7 @@
 					<field name="awb" optional="hide" />
 					<field name="billOfLading" optional="hide" />
 					<field name="container_number" optional="hide" />
+					<field name="place_of_receipt" optional="hide" />
 				</field>
 			</field>
     	</record>
@@ -134,7 +135,8 @@
             	</xpath> -->
 				<xpath expr="//header" position="inside">
 					<button name="action_tracking" id="action_tracking" string="Start Tracking" class="btn-primary" type="object" attrs="{'invisible':['|',('new_state','!=','sale'),('tracking_id','!=',False)]}"/>
-
+					<button name="action_open_seaway_bill_wizard" string="Bill of Lading" class="btn-secondary" type="object"
+							attrs="{'invisible': [('ts', 'not in', ['FCL', 'LCL'])]}"/>
 				</xpath>
 				<xpath expr="//button[@name='preview_sale_order']" position="after">
 	
@@ -149,6 +151,12 @@
                             </div>
                             
                         </button>
+					<button name="action_view_seaway_bill" type="object" class="oe_stat_button" icon="fa-file-text-o"
+							attrs="{'invisible': ['|', ('ts', 'not in', ['FCL', 'LCL']), ('seaway_bill_id', '=', False)]}">
+						<div class="o_field_widget o_stat_info">
+							<span class="o_stat_text">Bill of Lading</span>
+						</div>
+					</button>
 				</xpath>
 				<xpath expr="//button[@name='%(sale.action_view_sale_advance_payment_inv)d'][1]" position="attributes">
 					<attribute name="invisible">1</attribute>
@@ -180,6 +188,7 @@
 					<field name="destinationCountry_id" required="1"/>
 					<field name="is_delivered" readonly="1" />
 					<field name="tracking_id" readonly="1" />
+					<field name="seaway_bill_id" invisible="1"/>
 				</xpath>
 				<xpath expr="//field[@name='payment_term_id']" position="after">
 					<field name="commodityType" required="1"/>
@@ -189,6 +198,7 @@
 					<field name="destinationZip"/>
 					<field name="cargoWeight" attrs="{'invisible':[('ts', '!=', 'FCL')],'required':[('ts','=', 'FCL')]}"/>
 					<field name="totalChargableWeight"/>
+					<field name="place_of_receipt"/>
 					<!-- <field name="oceanBillOfLading" attrs="{'invisible': [('ts', 'not in', ['FCL', 'LCL'])]}"  />
                     <field name="awb" attrs="{'invisible': [('ts', 'not in', ['Air Freight', 'Courier Service'])]}" />
                     <field name="billOfLading" attrs="{'invisible': [('ts', 'not in', ['Road Freight'])]}"    /> -->

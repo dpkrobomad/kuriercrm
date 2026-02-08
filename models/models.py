@@ -10,8 +10,8 @@ import requests
 import logging
 _logger = logging.getLogger(__name__)
 
-KURIER_HOST = 'http://127.0.0.1:8000/'
-# KURIER_HOST = 'https://kuriervogel.com/'
+# KURIER_HOST = 'http://127.0.0.1:8000/'
+KURIER_HOST = 'https://kuriervogel.com/'
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
@@ -63,6 +63,9 @@ class SaleOrder(models.Model):
     billOfLading = fields.Char('Truck Way Bill')
     container_number = fields.Char(string="Container Number")
     is_transshipment = fields.Boolean(string="Is Transshipment",default=False)
+    place_of_receipt = fields.Char(string="Place of Receipt")
+    seaway_bill_ids = fields.One2many('seaway.bill', 'sale_order_id', string='Seaway Bills', readonly=True)
+    seaway_bill_id = fields.Many2one('seaway.bill', string='Seaway Bill', compute='_compute_seaway_bill_id', store=False, readonly=True)
     
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
@@ -99,7 +102,30 @@ class SaleOrder(models.Model):
                     'flags': {'initial_mode': 'view'}
                     }
 
-        
+    def action_open_seaway_bill_wizard(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Bill of Lading'),
+            'res_model': 'seaway.bill.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'active_id': self.id, 'active_model': 'sale.order'},
+        }
+
+    def action_view_seaway_bill(self):
+        self.ensure_one()
+        if not self.seaway_bill_id:
+            return self.action_open_seaway_bill_wizard()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Bill of Lading'),
+            'res_model': 'seaway.bill',
+            'res_id': self.seaway_bill_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
     
     @api.onchange('originCountry_id')
     def _onchange_originCountry_id(self):
@@ -111,6 +137,11 @@ class SaleOrder(models.Model):
         if self.destinationCountry_id:
             self.destinationCountry = self.destinationCountry_id.name
     
+    @api.depends('seaway_bill_ids')
+    def _compute_seaway_bill_id(self):
+        for rec in self:
+            rec.seaway_bill_id = rec.seaway_bill_ids[:1] if rec.seaway_bill_ids else False
+
     @api.onchange('typeOfShipment')
     def _onchange_typeOfShipment(self):
         if self.typeOfShipment:

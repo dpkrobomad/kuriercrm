@@ -17,15 +17,18 @@
     # Check https://github.com/odoo/odoo/blob/14.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
     'category': 'Uncategorized',
-    'version': '15.0.1.2',
+    'version': '15.0.1.5',
 
     # any module necessary for this one to work correctly
     'depends': ['base','web','sale','sale_management','account','site_settings'],
 
     # always loaded
     'data': [
+        'security/kvadmin_security.xml',
         'security/ir.model.access.csv',
         'data/sale_data.xml',
+        'data/seaway_data.xml',
+        'data/seaway_sync_countries.xml',
         'data/cron_job.xml',
         'views/views.xml',
         'views/sequence.xml',
@@ -42,6 +45,9 @@
         'views/partner_view.xml',
         'views/create_account_wizard_view.xml',
         'views/account_soa_view.xml',
+        'views/seaway_bill_wizard_view.xml',
+        'views/seaway_bill_views.xml',
+        'report/report_seaway_bill.xml',
         # XLSX reports; include when report_xlsx is installed
         # 'reports/account_soa_report.xml',
     ],
@@ -54,4 +60,5 @@
     'demo': [
         'demo/demo.xml',
     ],
+    'post_init_hook': 'deepu_sale.hooks:post_init_hook',
 }
