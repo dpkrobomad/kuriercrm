@@ -109,6 +109,7 @@
                         <t t-set="chunk_info" t-value="(doc_chunks or {}).get(doc.id, {'chunks': [[]], 'total_sheets': 1})"/>
                         <t t-set="line_chunks" t-value="chunk_info.get('chunks', [[]]) or [[]]"/>
                         <t t-set="total_sheets" t-value="chunk_info.get('total_sheets', 1)"/>
+                        <t t-if="doc.bill_type == 'original'"><t t-set="total_pages" t-value="total_sheets"/></t><t t-else=""><t t-set="total_pages" t-value="total_sheets + 1"/></t>
                         <!-- First chunk: table only (no big spacer), so terms and bottom stay on page 1 -->
                         <t t-set="first_chunk" t-value="line_chunks[0] if line_chunks else []"/>
                         <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-top: -1px; table-layout: fixed;">
@@ -144,7 +145,7 @@
                                 <tr style="background: #f8f8f8;">
                                     <td colspan="6" style="border: 1px solid #000; border-top: none; padding: 8px 12px; font-size: 9px;">
                                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                                            <span>Sheet 1 of <t t-esc="total_sheets"/></span>
+                                            <span><t t-if="total_sheets == 1">Riders - 1 of 1</t><t t-else="">Riders 1 of <t t-esc="total_sheets"/></t></span>
                                             <span t-if="fcl_label" style="font-weight: bold;"><t t-esc="fcl_label"/></span>
                                             <span t-if="freight_prepaid_display"><t t-esc="freight_prepaid_display"/></span>
                                             <span>SHIPPED ON BOARD <t t-esc="doc.shipped_on_board.strftime('%d.%m.%Y') if doc.shipped_on_board else ''"/></span>
@@ -192,9 +193,10 @@
                             </tbody>
                         </table>
 
-                        <!-- Footer -->
-                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ccc; text-align: center; font-size: 0.85rem; color: #666;">
-                            Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606
+                        <!-- Footer: page number left (Page 1 of N), customer support right -->
+                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                            <span>Page 1 of <t t-esc="total_pages"/></span>
+                            <span>Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606</span>
                         </div>
                         </div>
                         </div>
@@ -241,7 +243,7 @@
                                                 <tr style="background: #f8f8f8;">
                                                     <td colspan="6" style="border: 1px solid #000; border-top: none; padding: 8px 12px; font-size: 9px;">
                                                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                                                            <span>Sheet <t t-esc="cont_sheet_num"/> of <t t-esc="total_sheets"/></span>
+                                                            <span>Riders <t t-esc="cont_sheet_num"/> of <t t-esc="total_sheets"/></span>
                                                             <span t-if="fcl_label" style="font-weight: bold;"><t t-esc="fcl_label"/></span>
                                                             <span t-if="freight_prepaid_display"><t t-esc="freight_prepaid_display"/></span>
                                                             <span>SHIPPED ON BOARD <t t-esc="doc.shipped_on_board.strftime('%d.%m.%Y') if doc.shipped_on_board else ''"/></span>
@@ -250,14 +252,18 @@
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    <!-- Footer -->
-                                    <div style="margin-top: 0; padding-top: 1rem; border-top: 1px solid #ccc; text-align: center; font-size: 0.85rem; color: #666;">
-                                        Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606
+                                    <!-- Footer: page number left (Page X of N), customer support right -->
+                                    <t t-set="cont_page_num" t-value="1 + chunk_index"/>
+                                    <div style="margin-top: 0; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                                        <span>Page <t t-esc="cont_page_num"/> of <t t-esc="total_pages"/></span>
+                                        <span>Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606</span>
                                     </div>
                                     </div>
                                 </div>
                             </t>
                         </t>
+                        <!-- Terms and Conditions page (3 columns), unless Original B/L -->
+                        <t t-call="deepu_sale.report_seaway_bill_terms_page"/>
                         </div>
                     </div>
                 </t>

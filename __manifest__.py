@@ -48,6 +48,7 @@
         'views/seaway_bill_wizard_view.xml',
         'views/seaway_bill_views.xml',
         'report/report_seaway_bill.xml',
+        'report/report_seaway_bill_terms.xml',
         # XLSX reports; include when report_xlsx is installed
         # 'reports/account_soa_report.xml',
     ],
