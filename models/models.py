@@ -12,6 +12,42 @@ _logger = logging.getLogger(__name__)
 
 # KURIER_HOST = 'http://127.0.0.1:8000/'
 KURIER_HOST = 'https://kuriervogel.com/'
+TRACKING_API_TIMEOUT = 60  # seconds - wait for API to complete
+
+
+def _call_tracking_api(url_path, payload, logger=None):
+    """
+    Call the tracking notification API. Waits for completion.
+    Returns: (success: bool, error_message: str or None)
+    """
+    url = KURIER_HOST.rstrip('/') + '/' + url_path.lstrip('/')
+    headers = {"Content-Type": "application/json", "User-Agent": "Odoo/15.0 (KurierCRM)"}
+    log = logger or _logger
+    try:
+        result = requests.post(url, data=json.dumps(payload), headers=headers, timeout=TRACKING_API_TIMEOUT)
+        if result.status_code != 200:
+            return False, _("Notification API returned HTTP %(code)s: %(body)s") % {
+                'code': result.status_code,
+                'body': (result.text or result.reason or '')[:200],
+            }
+        res = json.loads(result.content.decode('UTF-8'))
+        if res.get('status') is not True:
+            msg = res.get('message') or res.get('error') or str(res)
+            return False, _("Notification API rejected the request: %s") % (msg[:200] if msg else 'status=false')
+        return True, None
+    except requests.exceptions.Timeout:
+        return False, _("Notification API request timed out after %s seconds. Please try again.") % TRACKING_API_TIMEOUT
+    except requests.exceptions.ConnectionError as e:
+        return False, _("Cannot reach notification server. Check network or try again later. Details: %s") % str(e)[:150]
+    except requests.exceptions.RequestException as e:
+        return False, _("Notification API request failed: %s") % str(e)[:150]
+    except (ValueError, json.JSONDecodeError) as e:
+        log.exception("Invalid JSON from tracking API")
+        return False, _("Notification API returned invalid response. Please contact support.")
+    except Exception as e:
+        log.exception("Unexpected error in tracking API call")
+        return False, _("Unexpected error: %s") % str(e)[:150]
+
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
@@ -807,31 +843,11 @@ class Tracking(models.Model):
             if rec.sent_action_email is False:
                 rec.state = 'booked'
             else:
-                url = KURIER_HOST+"booked"
-   
-                header = {
-                "Content-Type":"application/json"
-                }
-                
-                # if rec.partner_id.name is False or rec.partner_id.email is False or rec.scheduled_departure is False or rec.scheduled_arrival is False or rec.name is False or rec.sale_order_id.portOfLoading is False or rec.sale_order_id.portOfDestination is False:
-                #     raise ValidationError("Customer Name , Customer Email , Scheduled Departure , Scheduled Arrival , Port of Loading & Destination must be provided")
-                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"etd":str(rec.scheduled_departure),"eta":str(rec.scheduled_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"pod":rec.sale_order_id.portOfDestination,"po_number":rec.po_number or ""}
-                try:
-                    result = requests.post(url,data=json.dumps(payload), headers=header)
-                    print(">>>>>>>>>>>>>>>>>>>>>>>>result",result)
-                    if result.status_code == 200:
-
-                        res = json.loads(result.content.decode('UTF-8'))
-
-                        if res['status']==True:
-                            rec.state = 'booked'
-                        else:
-                            print("Failed To change ")
-                    else:
-                        print(result.status_code)
-                except Exception as e:
-                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
-                    _logger.error(f"Error in action_booked: {e}")
+                payload = {"name": rec.partner_id.name, "email": rec.partner_id.email, "etd": str(rec.scheduled_departure), "eta": str(rec.scheduled_arrival), "tracking_no": rec.name, "pol": rec.sale_order_id.portOfLoading, "pod": rec.sale_order_id.portOfDestination, "po_number": rec.po_number or ""}
+                ok, err = _call_tracking_api("booked", payload)
+                if not ok:
+                    raise UserError(err)
+                rec.state = 'booked'
                     
     
             
@@ -845,54 +861,22 @@ class Tracking(models.Model):
             if rec.sent_action_email is False:
                 rec.state = 'departed'
             else:
-                url = KURIER_HOST+"departed"
-  
-                header = {
-                "Content-Type":"application/json"
-                }
-                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"flight_vessel":rec.Flight_Vessel_Schedule,"atd":str(rec.actual_departure),"eta":str(rec.scheduled_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"po_number":rec.po_number or ""}
-                try:
-                    result = requests.post(url,data=json.dumps(payload), headers=header)
-                    if result.status_code == 200:
-
-                        res = json.loads(result.content.decode('UTF-8'))
-
-                        if res['status']==True:
-                            rec.state = 'departed'
-                        else:
-                            print("Failed To change ")
-                    else:
-                        print(result.status_code)
-                except Exception as e:
-                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
-                    _logger.error(f"Error in action_departed: {e}")
+                payload = {"name": rec.partner_id.name, "email": rec.partner_id.email, "flight_vessel": rec.Flight_Vessel_Schedule, "atd": str(rec.actual_departure), "eta": str(rec.scheduled_arrival), "tracking_no": rec.name, "pol": rec.sale_order_id.portOfLoading, "po_number": rec.po_number or ""}
+                ok, err = _call_tracking_api("departed", payload)
+                if not ok:
+                    raise UserError(err)
+                rec.state = 'departed'
     def action_transpotation(self):
         for rec in self:
             rec.prev_state = rec.state
             if rec.sent_action_email is False:
                 rec.state = 'transit'
             else:
-                url = KURIER_HOST + "transportation"
-                header = {
-                    "Content-Type": "application/json",
-                    "User-Agent": "Odoo/15.0 (KurierCRM)",
-                }
                 payload = {"name": rec.partner_id.name, "email": rec.partner_id.email, "tracking_no": rec.name, "po_number": rec.po_number or ""}
-                try:
-                    _logger.info("action_transportation payload: %s", payload)
-                    result = requests.post(url, data=json.dumps(payload), headers=header, timeout=30)
-                    if result.status_code == 200:
-
-                        res = json.loads(result.content.decode('UTF-8'))
-
-                        if res['status']==True:
-                            rec.state = 'transit'
-                        else:
-                            print("Failed To change ")
-                    else:
-                        _logger.warning("action_transportation API returned %s: %s", result.status_code, result.content[:500] if result.content else "")
-                except Exception as e:
-                    _logger.error("Error in action_transportation: %s", e, exc_info=True)
+                ok, err = _call_tracking_api("transportation", payload)
+                if not ok:
+                    raise UserError(err)
+                rec.state = 'transit'
     def action_arrived(self):
         for rec in self:
             rec.prev_state = rec.state
@@ -901,58 +885,22 @@ class Tracking(models.Model):
             if rec.sent_action_email is False:
                 rec.state = 'arrived'
             else:
-                url = KURIER_HOST+"arrived"
-
-                header = {
-                "Content-Type":"application/json"
-                }
-                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"ata":str(rec.actual_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"pod":rec.sale_order_id.portOfDestination,"po_number":rec.po_number or ""}
-                try:
-                    result = requests.post(url,data=json.dumps(payload), headers=header)
-                    print(">>>>>>>>>>>>>>>>>>>>>>>>result",result)
-                    if result.status_code == 200:
-  
-                        res = json.loads(result.content.decode('UTF-8'))
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>res",res)
-    
-                        if res['status']==True:
-                            rec.state = 'arrived'
-                        else:
-                            print("Failed To change ")
-                    else:
-                        print(result.status_code)
-                except Exception as e:
-                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
-                    _logger.error(f"Error in action_arrived: {e}")
+                payload = {"name": rec.partner_id.name, "email": rec.partner_id.email, "ata": str(rec.actual_arrival), "tracking_no": rec.name, "pol": rec.sale_order_id.portOfLoading, "pod": rec.sale_order_id.portOfDestination, "po_number": rec.po_number or ""}
+                ok, err = _call_tracking_api("arrived", payload)
+                if not ok:
+                    raise UserError(err)
+                rec.state = 'arrived'
     def action_clearance(self):
         for rec in self:
             rec.prev_state = rec.state
             if rec.sent_action_email is False:
                 rec.state = 'clearance'
             else:
-                url = KURIER_HOST+"clearance"
-                
-                header = {
-                "Content-Type":"application/json"
-                }
-                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"tracking_no":rec.name,"po_number":rec.po_number or ""}
-                try:
-                    result = requests.post(url,data=json.dumps(payload), headers=header)
-                    print(">>>>>>>>>>>>>>>>>>>>>>>>result",result)
-                    if result.status_code == 200:
-
-                        res = json.loads(result.content.decode('UTF-8'))
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>res",res)
-
-                        if res['status']==True:
-                            rec.state = 'clearance'
-                        else:
-                            print("Failed To change ")
-                    else:
-                        print(result.status_code)
-                except Exception as e:
-                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
-                    _logger.error(f"Error in action_clearance: {e}")
+                payload = {"name": rec.partner_id.name, "email": rec.partner_id.email, "tracking_no": rec.name, "po_number": rec.po_number or ""}
+                ok, err = _call_tracking_api("clearance", payload)
+                if not ok:
+                    raise UserError(err)
+                rec.state = 'clearance'
             
     def action_out_for_delivery(self):
         for rec in self:
@@ -960,29 +908,11 @@ class Tracking(models.Model):
             if rec.sent_action_email is False:
                 rec.state = 'out'
             else:
-                url = KURIER_HOST+"out_for_delivery"
-                
-                header = {
-                "Content-Type":"application/json"
-                }
-                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"tracking_no":rec.name,"po_number":rec.po_number or ""}
-                try:
-                    result = requests.post(url,data=json.dumps(payload), headers=header)
-                    print(">>>>>>>>>>>>>>>>>>>>>>>>result",result)
-                    if result.status_code == 200:
-
-                        res = json.loads(result.content.decode('UTF-8'))
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>res",res)
-
-                        if res['status']==True:
-                            rec.state = 'out'
-                        else:
-                            print("Failed To change ")
-                    else:
-                        print(result.status_code)
-                except Exception as e:
-                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
-                    _logger.error(f"Error in action_out_for_delivery: {e}")
+                payload = {"name": rec.partner_id.name, "email": rec.partner_id.email, "tracking_no": rec.name, "po_number": rec.po_number or ""}
+                ok, err = _call_tracking_api("out_for_delivery", payload)
+                if not ok:
+                    raise UserError(err)
+                rec.state = 'out'
     
     def action_delivered(self):
         # date_of_delivery
@@ -992,32 +922,16 @@ class Tracking(models.Model):
                 raise ValidationError("Delivered Date must be provided!!!")
             if rec.sent_action_email is False:
                 rec.state = 'delivered'
+                rec.sale_order_id.is_delivered = True
+                rec.sale_order_id.new_state = 'delivered'
             else:
-                url = KURIER_HOST+"delivered"
-                
-                header = {
-                "Content-Type":"application/json"
-                }
-                payload = {"name":rec.partner_id.name,"email":rec.partner_id.email,"ata":str(rec.actual_arrival),"tracking_no":rec.name,"pol":rec.sale_order_id.portOfLoading,"pod":rec.sale_order_id.portOfDestination,"delivered_date":str(rec.date_of_delivery),"po_number":rec.po_number or ""}
-                try:
-                    result = requests.post(url,data=json.dumps(payload), headers=header)
-                    print(">>>>>>>>>>>>>>>>>>>>>>>>result",result)
-                    if result.status_code == 200:
-                    
-                        res = json.loads(result.content.decode('UTF-8'))
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>res",res)
-                    
-                        if res['status']==True:
-                            rec.state = 'delivered'
-                            rec.sale_order_id.is_delivered = True
-                            rec.sale_order_id.new_state = 'delivered'
-                        else:
-                            print("Failed To change ")
-                    else:
-                        print(result.status_code)
-                except Exception as e:
-                    print(e,">>>>>>>>>>>>>>>>>>>>>>>>error")
-                    _logger.error(f"Error in action_delivered: {e}")
+                payload = {"name": rec.partner_id.name, "email": rec.partner_id.email, "ata": str(rec.actual_arrival), "tracking_no": rec.name, "pol": rec.sale_order_id.portOfLoading, "pod": rec.sale_order_id.portOfDestination, "delivered_date": str(rec.date_of_delivery), "po_number": rec.po_number or ""}
+                ok, err = _call_tracking_api("delivered", payload)
+                if not ok:
+                    raise UserError(err)
+                rec.state = 'delivered'
+                rec.sale_order_id.is_delivered = True
+                rec.sale_order_id.new_state = 'delivered'
             
     def action_cencel(self):
         for rec in self:
