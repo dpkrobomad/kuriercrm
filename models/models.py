@@ -10,8 +10,8 @@ import requests
 import logging
 _logger = logging.getLogger(__name__)
 
-# KURIER_HOST = 'http://127.0.0.1:8000/'
-KURIER_HOST = 'https://kuriervogel.com/'
+KURIER_HOST = 'http://127.0.0.1:8000/'
+# KURIER_HOST = 'https://kuriervogel.com/'
 TRACKING_API_TIMEOUT = 60  # seconds - wait for API to complete
 
 
@@ -26,9 +26,18 @@ def _call_tracking_api(url_path, payload, logger=None):
     try:
         result = requests.post(url, data=json.dumps(payload), headers=headers, timeout=TRACKING_API_TIMEOUT)
         if result.status_code != 200:
+            body = (result.text or result.reason or '')[:300]
+            # HTTP 403 with Cloudflare "Just a moment" = bot protection blocking server requests
+            if result.status_code == 403 and ('just a moment' in body.lower() or 'cloudflare' in body.lower()):
+                return False, _(
+                    "The notification server (kuriervogel.com) is blocking automated requests (HTTP 403). "
+                    "This usually means Cloudflare or similar protection is blocking server-to-server API calls. "
+                    "Workaround: Uncheck 'Send Email for Action' on this tracking record to update status without sending notifications. "
+                    "To fix permanently: Ask the API provider to whitelist your Odoo server IP or provide a bypass for API calls."
+                )
             return False, _("Notification API returned HTTP %(code)s: %(body)s") % {
                 'code': result.status_code,
-                'body': (result.text or result.reason or '')[:200],
+                'body': body[:200],
             }
         res = json.loads(result.content.decode('UTF-8'))
         if res.get('status') is not True:
