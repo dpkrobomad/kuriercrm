@@ -104,6 +104,8 @@ class SaleOrder(models.Model):
 
     def action_open_seaway_bill_wizard(self):
         self.ensure_one()
+        if not self.tracking_id:
+            raise UserError(_('No tracking is available for this Quotation'))
         return {
             'type': 'ir.actions.act_window',
             'name': _('Bill of Lading'),

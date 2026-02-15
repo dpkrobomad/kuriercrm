@@ -61,7 +61,7 @@
                                                 <td style="width: 40%; min-width: 140px; padding: 0; vertical-align: top; text-align: right;">
                                                     <div style="border: 2px solid #000; padding: 10px 14px; display: inline-block; font-weight: bold; text-align: left; white-space: nowrap; min-width: 130px;">
                                                         <div style="font-size: 0.75rem; margin-bottom: 4px; border-bottom: 1px solid #000; padding-bottom: 4px;">BILL OF LADING NUMBER</div>
-                                                        <div style="font-size: 1rem; white-space: nowrap;"><t t-esc="doc.bl_number or ''"/></div>
+                                                        <div style="font-size: 1rem; white-space: nowrap;"><t t-esc="(doc.sale_order_id and doc.sale_order_id.tracking_id) and doc.sale_order_id.tracking_id.name or doc.bl_number or ''"/></div>
                                                     </div>
                                                 </td>
                                             </tr>

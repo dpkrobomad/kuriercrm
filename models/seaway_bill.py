@@ -81,7 +81,11 @@ class SeawayBill(models.Model):
     @api.model
     def create(self, vals):
         if vals.get('bl_number', _('New')) == _('New'):
-            vals['bl_number'] = self.env['ir.sequence'].next_by_code('seaway.bill') or _('New')
+            sale_order = self.env['sale.order'].browse(vals.get('sale_order_id'))
+            if sale_order and sale_order.tracking_id:
+                vals['bl_number'] = sale_order.tracking_id.name
+            else:
+                vals['bl_number'] = _('New')
         return super().create(vals)
 
     _sql_constraints = [

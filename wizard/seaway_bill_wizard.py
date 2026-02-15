@@ -248,7 +248,7 @@ class SeawayBillWizard(models.TransientModel):
             vessel_voyage_no = (tracking and tracking.Flight_Vessel_Schedule) or ''
             shipped_on_board = (tracking and tracking.actual_departure) or False
 
-            # Create seaway bill for new orders so sequence is generated and stored (even for draft)
+            # Create seaway bill for new orders (bl_number comes from tracking_id.name)
             seaway_bill = self.env['seaway.bill'].search([('sale_order_id', '=', sale_order.id)], limit=1)
             if not seaway_bill:
                 seaway_bill = self.env['seaway.bill'].create({'sale_order_id': sale_order.id})
