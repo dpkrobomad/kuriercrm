@@ -1,11 +1,24 @@
 from cgitb import reset
-from odoo import models, fields, api,SUPERUSER_ID, _
+from odoo import models, fields, api, SUPERUSER_ID, _
 from datetime import datetime, timedelta
 from itertools import groupby
 import json
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.osv import expression
 from odoo.tools import float_is_zero, html_keep_url, is_html_empty
+from odoo.tools.misc import format_amount
+
+
+def _convert_foreign_to_aed(env, from_amount, currency_code, company, date):
+    """Convert amount from foreign currency (USD/EUR/GBP) to company currency (AED)."""
+    if not from_amount or not currency_code or currency_code == 'AED':
+        return from_amount or 0.0
+    from_currency = env['res.currency'].sudo().search([('name', '=', currency_code)], limit=1)
+    company_currency = company.currency_id
+    if not from_currency or not company_currency:
+        return from_amount
+    return from_currency._convert(from_amount, company_currency, company, date)
+
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
@@ -44,9 +57,103 @@ class AccountMove(models.Model):
     is_loss = fields.Boolean('Is Loss',default=False)
     custom_terms = fields.Html(string='Terms and Conditions', widget='html', help="Terms and Conditions", placeholder="Terms and Conditions...")
     exchange_rates = fields.Char('Exchange Rates')
-    currency_selection = fields.Selection([('AED', 'AED'), ('USD', 'USD'), ('EUR', 'EUR')], string='Currency', default='AED')
+    currency_selection = fields.Selection([('AED', 'AED'), ('USD', 'USD'), ('EUR', 'EUR') , ('GBP', 'GBP')], string='Currency', default='AED')
     # profit_and_loss_perc = fields.Float('Profit in AED',compute="_profit_calculate",digits=(12,2))
-    
+
+    amount_total_in_selected_currency = fields.Float(
+        string='Total in Selected Currency',
+        compute='_compute_amount_total_in_selected_currency',
+        store=True,
+        digits=(16, 2),
+        help='Sum of line totals in the currency selected by currency_selection (USD/EUR/GBP).'
+    )
+
+    @api.depends('invoice_line_ids.price_unit_foreign', 'invoice_line_ids.quantity', 'currency_selection', 'move_type')
+    def _compute_amount_total_in_selected_currency(self):
+        for move in self:
+            if move.currency_selection in ('USD', 'EUR', 'GBP') and move.move_type == 'in_invoice':
+                total = move._get_total_in_selected_currency()
+                move.amount_total_in_selected_currency = total
+            else:
+                move.amount_total_in_selected_currency = 0.0
+
+    def _get_total_in_selected_currency(self):
+        """Sum of price_unit_foreign * quantity from invoice lines. Reads from DB when needed."""
+        self.ensure_one()
+        if self.currency_selection not in ('USD', 'EUR', 'GBP') or self.move_type != 'in_invoice':
+            return 0.0
+
+        def _sum_from_orm():
+            total = 0.0
+            for line in self.invoice_line_ids:
+                if not line.display_type and line.price_unit_foreign:
+                    total += (line.price_unit_foreign or 0) * (line.quantity or 0.0)
+            return total
+
+        # Use ORM for new/unsaved records (onchange, NewId) - psycopg2 can't adapt NewId
+        if isinstance(self.id, models.NewId):
+            return _sum_from_orm()
+        # SQL read for persisted records (avoids cache issues after direct SQL update)
+        try:
+            self.env.cr.execute("""
+                SELECT COALESCE(SUM(
+                    COALESCE(aml.price_unit_foreign, 0) * COALESCE(aml.quantity, 0)
+                ), 0)
+                FROM account_move_line aml
+                WHERE aml.move_id = %s
+                  AND (aml.exclude_from_invoice_tab IS NULL OR aml.exclude_from_invoice_tab = false)
+                  AND (aml.display_type IS NULL OR aml.display_type NOT IN ('line_section', 'line_note'))
+            """, (self.id,))
+            return float(self.env.cr.fetchone()[0])
+        except Exception:
+            return _sum_from_orm()
+
+    total_foreign = fields.Char(
+        string='Total Foreign',
+        compute='_compute_total_foreign',
+        store=True,
+        help='Total in selected foreign currency with symbol (e.g. $2,000.00)'
+    )
+
+    def action_recompute_foreign_totals(self):
+        """Button: force recompute stored totals from line price_unit_foreign."""
+        self._recompute_foreign_totals()
+        return {'type': 'ir.actions.act_window_close'}
+
+    def _recompute_foreign_totals(self):
+        """Force recompute and persist amount_total_in_selected_currency and total_foreign.
+        Use for fixing stored totals when price_unit_foreign was saved via SQL or for existing records."""
+        for move in self:
+            if move.currency_selection not in ('USD', 'EUR', 'GBP') or move.move_type != 'in_invoice':
+                continue
+            total = move._get_total_in_selected_currency()
+            currency = self.env['res.currency'].sudo().search(
+                [('name', '=', move.currency_selection)], limit=1
+            )
+            total_foreign = format_amount(move.env, total, currency) if currency and total else ''
+            move.write({
+                'amount_total_in_selected_currency': total,
+                'total_foreign': total_foreign,
+            })
+
+    @api.depends('amount_total_in_selected_currency', 'currency_selection', 'move_type')
+    def _compute_total_foreign(self):
+        for move in self:
+            if (move.move_type == 'in_invoice'
+                    and move.currency_selection in ('USD', 'EUR', 'GBP')
+                    and move.amount_total_in_selected_currency):
+                currency = self.env['res.currency'].sudo().search(
+                    [('name', '=', move.currency_selection)], limit=1
+                )
+                if currency:
+                    move.total_foreign = format_amount(
+                        move.env, move.amount_total_in_selected_currency, currency
+                    )
+                else:
+                    move.total_foreign = ''
+            else:
+                move.total_foreign = ''
+
     show_sib_account = fields.Boolean('Show SIB Account in Invoice',default=False)
     
     product_line_ids = fields.One2many('deepu.account.order.line','account_order_id')
@@ -343,6 +450,152 @@ class AccountMove(models.Model):
 
         
         return result
+
+    def write(self, vals):
+        """Capture price_unit_foreign and explicitly persist after save (autocomplete may drop it)."""
+        foreign_values = {}
+        # Capture from invoice_line_ids (client form) or line_ids (autocomplete internal write)
+        for key in ('invoice_line_ids', 'line_ids'):
+            cmds = vals.get(key) or []
+            for cmd in cmds:
+                if len(cmd) >= 3 and cmd[0] == 1:  # UPDATE
+                    line_vals = cmd[2] if isinstance(cmd[2], dict) else {}
+                    if 'price_unit_foreign' in line_vals:
+                        foreign_values[cmd[1]] = line_vals['price_unit_foreign']
+        result = super().write(vals)
+        if foreign_values and result:
+            # Use direct SQL to guarantee persistence (ORM/autocomplete may filter our field)
+            for line_id, value in foreign_values.items():
+                line = self.env['account.move.line'].browse(line_id).exists()
+                if line and line.move_id in self:
+                    # Direct SQL update to bypass any ORM filtering
+                    self.env.cr.execute(
+                        "UPDATE account_move_line SET price_unit_foreign = %s WHERE id = %s",
+                        (float(value or 0), line_id)
+                    )
+            # Recompute and persist stored totals (SQL read in _get_total_in_selected_currency avoids cache)
+            affected = self.filtered(
+                lambda m: m.currency_selection in ('USD', 'EUR', 'GBP') and m.move_type == 'in_invoice'
+            )
+            if affected:
+                affected._recompute_foreign_totals()
+        return result
+
+    def _move_autocomplete_invoice_lines_create(self, vals_list):
+        """Apply price_unit from price_unit_foreign before autocomplete for vendor bills."""
+        for vals in vals_list:
+            if vals.get('currency_selection') in ('USD', 'EUR', 'GBP') and vals.get('move_type') == 'in_invoice':
+                company = self.env['res.company'].browse(vals.get('company_id') or self.env.company.id)
+                date = vals.get('invoice_date') or vals.get('date') or fields.Date.context_today(self)
+                for key in ('invoice_line_ids', 'line_ids'):
+                    for cmd in vals.get(key, []) or []:
+                        if len(cmd) >= 3 and cmd[0] == 0 and isinstance(cmd[2], dict):  # (0, 0, line_vals)
+                            line_vals = cmd[2]
+                            if line_vals.get('price_unit_foreign') is not None:
+                                line_vals['price_unit'] = _convert_foreign_to_aed(
+                                    self.env, line_vals['price_unit_foreign'], vals['currency_selection'], company, date
+                                )
+        return super()._move_autocomplete_invoice_lines_create(vals_list)
+
+    def _move_autocomplete_invoice_lines_values(self):
+        """Preserve price_unit_foreign in values - inject from context (form may not include it in _convert_to_write)."""
+        values = super()._move_autocomplete_invoice_lines_values()
+        # Use pending foreign values from write (passed via context) - form payload may be dropped by autocomplete
+        pending = self.env.context.get('_price_unit_foreign_pending') or {}
+        if not pending or self.currency_selection not in ('USD', 'EUR', 'GBP') or self.move_type != 'in_invoice':
+            return values
+        line_ids = values.get('line_ids') or []
+        for cmd in line_ids:
+            if len(cmd) >= 3 and cmd[0] == 1 and isinstance(cmd[2], dict):
+                if cmd[1] in pending:
+                    cmd[2]['price_unit_foreign'] = pending[cmd[1]]
+        return values
+
+    def _move_autocomplete_invoice_lines_write(self, vals):
+        """Ensure price_unit_foreign is applied and preserved through autocomplete."""
+        if vals.get('invoice_line_ids') and not vals.get('line_ids') and self:
+            move = self[0]
+            pending_foreign = {}
+            if move.currency_selection in ('USD', 'EUR', 'GBP') and move.move_type == 'in_invoice':
+                for cmd in vals['invoice_line_ids']:
+                    if len(cmd) >= 3 and cmd[0] == 1:
+                        line_vals = cmd[2]
+                        if isinstance(line_vals, dict) and 'price_unit_foreign' in line_vals:
+                            line_id = cmd[1]
+                            val = line_vals['price_unit_foreign']
+                            pending_foreign[line_id] = float(val) if val is not None else 0.0
+                            company = move.company_id
+                            date = move.invoice_date or fields.Date.context_today(self)
+                            line_vals['price_unit'] = _convert_foreign_to_aed(
+                                self.env, val, move.currency_selection, company, date
+                            )
+            # Pass to _move_autocomplete_invoice_lines_values via context
+            return super(AccountMove, self.with_context(_price_unit_foreign_pending=pending_foreign))._move_autocomplete_invoice_lines_write(vals)
+        return super()._move_autocomplete_invoice_lines_write(vals)
+
+
+class AccountMoveLine(models.Model):
+    _inherit = 'account.move.line'
+
+    price_unit_foreign = fields.Float(
+        string='Price (Foreign)',
+        digits='Product Price',
+        help='Enter price in the selected currency (USD/EUR/GBP). It will be converted to AED.'
+    )
+
+    @api.onchange('price_unit_foreign')
+    def _onchange_price_unit_foreign(self):
+        """Convert foreign price to AED and update price_unit when currency_selection is USD/EUR/GBP."""
+        if not self.price_unit_foreign or not self.move_id:
+            return
+        move = self.move_id
+        if move.currency_selection not in ('USD', 'EUR', 'GBP') or move.move_type != 'in_invoice':
+            return
+        company = move.company_id
+        date = move.invoice_date or fields.Date.context_today(self)
+        self.price_unit = _convert_foreign_to_aed(
+            self.env, self.price_unit_foreign, move.currency_selection, company, date
+        )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            move = self._get_move_for_foreign_conversion(vals, records=None)
+            self._apply_foreign_to_price_unit(vals, move)
+        return super().create(vals_list)
+
+    def write(self, vals):
+        move = self._get_move_for_foreign_conversion(vals, records=self) if self else None
+        self._apply_foreign_to_price_unit(vals, move)
+        return super().write(vals)
+
+    def _get_move_for_foreign_conversion(self, vals, records=None):
+        """Get the account.move for currency conversion from vals or records."""
+        if 'price_unit_foreign' not in vals:
+            return None
+        if records:
+            move = records[0].move_id
+        elif vals.get('move_id'):
+            move = self.env['account.move'].browse(vals['move_id'])
+        else:
+            move = self.env['account.move'].browse(self.env.context.get('default_move_id'))
+        if not move or move.currency_selection not in ('USD', 'EUR', 'GBP') or move.move_type != 'in_invoice':
+            return None
+        return move
+
+    def _apply_foreign_to_price_unit(self, vals, move):
+        """When price_unit_foreign is set, convert and set price_unit in vals."""
+        if 'price_unit_foreign' not in vals or not move:
+            return
+        foreign = vals.get('price_unit_foreign')
+        if foreign is None:
+            return
+        company = move.company_id
+        date = move.invoice_date or fields.Date.context_today(self)
+        vals['price_unit'] = _convert_foreign_to_aed(
+            self.env, foreign, move.currency_selection, company, date
+        )
+
 
 class AccountProductOrder(models.Model):
     _name = 'deepu.account.order.line'

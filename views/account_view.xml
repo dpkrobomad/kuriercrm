@@ -24,6 +24,9 @@
                     
 
                 </xpath>
+				<xpath expr="//field[@name='invoice_line_ids']//field[@name='price_unit']" position="before">
+					<field name="price_unit_foreign" string="Price (Foreign)" force_save="1" attrs="{'invisible': ['|', '|', ('parent.move_type', '!=', 'in_invoice'), ('parent.currency_selection', 'in', ['AED']), ('display_type', 'in', ('line_section', 'line_note'))]}"/>
+				</xpath>
 				<xpath expr="//field[@name='invoice_line_ids']" position="after">
 				 	<field name="custom_terms" attrs="{'invisible': [('move_type', 'not in', ('in_invoice', 'out_invoice'))] }" />
 				</xpath>
@@ -32,6 +35,9 @@
 				</xpath>
 
 				<xpath expr="//field[@name='tax_totals_json']" position="before">
+					<field name="amount_total_in_selected_currency" string="Total in USD" attrs="{'invisible': ['|', ('move_type', '!=', 'in_invoice'), ('currency_selection', '!=', 'USD')]}"/>
+					<field name="amount_total_in_selected_currency" string="Total in EUR" attrs="{'invisible': ['|', ('move_type', '!=', 'in_invoice'), ('currency_selection', '!=', 'EUR')]}"/>
+					<field name="amount_total_in_selected_currency" string="Total in GBP" attrs="{'invisible': ['|', ('move_type', '!=', 'in_invoice'), ('currency_selection', '!=', 'GBP')]}"/>
 					<field name="is_loss" invisible="1"/>
 					<field name="profit_and_loss" string="Profit in AED" attrs="{'invisible': ['|',('is_loss','=',True),('move_type','!=','out_invoice')]}" class="text-success"/>
 					<field name="profit_and_loss" string="Loss in AED" attrs="{'invisible': ['|',('is_loss','=',False),('move_type','!=','out_invoice')]}" class="text-danger"/>
@@ -170,6 +176,55 @@
 					<field name="is_loss" optional="hide" widget="boolean_toggle"/>
 				</xpath>
 				<!-- Other (after amount_residual_signed) -->
+				<xpath expr="//field[@name='amount_residual_signed']" position="after">
+					<field name="exchange_rates" optional="hide"/>
+					<field name="currency_selection" optional="hide"/>
+					<field name="show_sib_account" optional="hide" widget="boolean_toggle"/>
+				</xpath>
+			</field>
+		</record>
+
+		<!-- Vendor bills tree: same custom optional fields as customer invoices + total_foreign -->
+		<record id="view_in_invoice_tree_inherit_total_foreign" model="ir.ui.view">
+			<field name="name">account.move.tree.inherit.in.invoice</field>
+			<field name="model">account.move</field>
+			<field name="inherit_id" ref="account.view_in_invoice_tree"/>
+			<field name="arch" type="xml">
+				<!-- Same custom fields as customer invoice tree -->
+				<xpath expr="//field[@name='invoice_date']" position="before">
+					<field name="contact_person" optional="hide"/>
+					<field name="po_number" optional="hide"/>
+					<field name="shipper" string="Shipper" optional="hide"/>
+					<field name="consignee" optional="hide"/>
+					<field name="typeOfShipment" string="Type Of Shipment" optional="hide"/>
+					<field name="shipmentTerms" string="Shipment Terms" optional="hide"/>
+					<field name="portOfLoading" string="Port of Loading" optional="hide"/>
+					<field name="portOfDestination" optional="hide"/>
+					<field name="originCountry" optional="hide"/>
+					<field name="destinationCountry" optional="hide"/>
+					<field name="no_of_pcs" optional="hide"/>
+					<field name="totalChargableWeight" string="Total CW/CBM" optional="hide"/>
+					<field name="cargoWeight" optional="hide"/>
+					<field name="commodityType" optional="hide"/>
+				</xpath>
+				<xpath expr="//field[@name='invoice_origin']" position="after">
+					<field name="sale_id" string="Quotation Ref." optional="hide"/>
+					<field name="tracking_id" string="Tracking Ref." optional="hide"/>
+				</xpath>
+				<xpath expr="//field[@name='ref']" position="after">
+					<field name="oceanBillOfLading" optional="hide"/>
+					<field name="awb" optional="hide"/>
+					<field name="billOfLading" optional="hide"/>
+					<field name="container_number" optional="hide"/>
+				</xpath>
+				<xpath expr="//field[@name='amount_total_in_currency_signed']" position="after">
+					<field name="usd" string="Amount USD" optional="hide"/>
+					<field name="eur" string="Amount EUR" optional="hide"/>
+					<field name="gbp" string="Amount GBP" optional="hide"/>
+					<field name="total_foreign" string="Total Foreign" optional="show"/>
+					<field name="profit_and_loss" string="Profit/Loss AED" optional="hide"/>
+					<field name="is_loss" optional="hide" widget="boolean_toggle"/>
+				</xpath>
 				<xpath expr="//field[@name='amount_residual_signed']" position="after">
 					<field name="exchange_rates" optional="hide"/>
 					<field name="currency_selection" optional="hide"/>

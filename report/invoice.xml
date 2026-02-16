@@ -431,38 +431,13 @@
                             
                             </t>
                             <t t-else="">
-                                <t t-if="o.currency_selection == 'AED'">
                                     <p> KurierVogel Freight Broker LLC<br/>
                                     Abu Dhabi Commercial Bank (ADCB), Al Riggah Road Branch, Dubai – UAE<br/>
-                                    Account number- (AED ) 12327224920001<br/>
-                                    IBAN No: AE920030012327224920001<br/>
+                                    Acc(AED) 12327224920001 ; IBAN No: AE920030012327224920001<br/>
+                                    Acc(USD): 12327224930001 ;IBAN No: AE430030012327224930001<br/>
+                                    Acc(EUR): 12327224930002 ;IBAN No: AE160030012327224930002<br/>
                                     SWIFT Code: ADCBAEAA060
                                     </p>
-                                </t>
-                                <t t-elif="o.currency_selection == 'USD'">
-                                    <p> Kurier Vogel Freight Broker LLC<br/>
-                                    Abu Dhabi Commercial Bank (ADCB), Al Riggah Road Branch, Dubai – UAE<br/>
-                                    Beneficiary A/C No (USD ): 12327224930001<br/>
-                                    IBAN No: AE430030012327224930001<br/>
-                                    Swift Code: ADCBAEAA060
-                                    </p>
-                                </t>
-                                <t t-elif="o.currency_selection == 'EUR'">
-                                    <p> Kurier Vogel Freight Broker LLC<br/>
-                                    Abu Dhabi Commercial Bank (ADCB), Al Riggah Road Branch, Dubai – UAE<br/>
-                                    Beneficiary A/C No (EUR ): 12327224930002<br/>
-                                    IBAN No: AE160030012327224930002<br/>
-                                    Swift Code: ADCBAEAA060
-                                    </p>
-                                </t>
-                                <t t-else="">
-                                    <p> KurierVogel Freight Broker LLC<br/>
-                                    Abu Dhabi Commercial Bank (ADCB), Al Riggah Road Branch, Dubai – UAE<br/>
-                                    Account number- (AED ) 12327224920001<br/>
-                                    IBAN No: AE920030012327224920001<br/>
-                                    SWIFT Code: ADCBAEAA060
-                                    </p>
-                                </t>
                             </t>
                             
                         </div>
