@@ -141,10 +141,12 @@
                 <!-- Spacer to push footer to bottom -->
                 <div style="height: 2mm;"> </div>
                 <!-- Footer in normal flow -->
-                <div style="padding: 4px 0; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                    <span>Page <t t-esc="terms_riders_page"/> of <t t-esc="terms_total_pages"/></span>
-                    <span>Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606</span>
-                </div>
+                <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666;">
+                    <tr>
+                        <td style="padding: 4px 0; text-align: left;">Page <t t-esc="terms_riders_page"/> of <t t-esc="terms_total_pages"/></td>
+                        <td style="padding: 4px 0; text-align: right;">Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606</td>
+                    </tr>
+                </table>
             </div>
         </t>
     </template>

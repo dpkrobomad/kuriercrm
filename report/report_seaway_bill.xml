@@ -167,14 +167,14 @@
                             </tr>
                         </table>
                         <!-- Riders row -->
-                        <div style="border: 1px solid #000; padding: 3px 12px; font-size: 9px; background: #f8f8f8;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                                <span><t t-if="total_sheets == 1">Riders - 1 of 1</t><t t-else="">Riders 1 of <t t-esc="total_sheets"/></t></span>
-                                <span t-if="fcl_label" style="font-weight: bold;"><t t-esc="fcl_label"/></span>
-                                <span t-if="freight_prepaid_display"><t t-esc="freight_prepaid_display"/></span>
-                                <span>SHIPPED ON BOARD <t t-esc="doc.shipped_on_board.strftime('%d.%m.%Y') if doc.shipped_on_board else ''"/></span>
-                            </div>
-                        </div>
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; background: #f8f8f8; font-size: 9px; table-layout: fixed;">
+                            <tr>
+                                <td style="padding: 3px 12px; text-align: left; width: 25%;"><t t-if="total_sheets == 1">Riders - 1 of 1</t><t t-else="">Riders 1 of <t t-esc="total_sheets"/></t></td>
+                                <td style="padding: 3px 12px; text-align: center; width: 25%; font-weight: bold;" t-if="fcl_label"><t t-esc="fcl_label"/></td>
+                                <td style="padding: 3px 12px; text-align: center; width: 25%;" t-if="freight_prepaid_display"><t t-esc="freight_prepaid_display"/></td>
+                                <td style="padding: 3px 12px; text-align: right; width: 25%;">SHIPPED ON BOARD <t t-esc="doc.shipped_on_board.strftime('%d.%m.%Y') if doc.shipped_on_board else ''"/></td>
+                            </tr>
+                        </table>
                         <!-- Terms -->
                         <div style="border: 1px solid #000; padding: 12px; margin-bottom: 0; font-size: 10px; line-height: 1.4; border-top: none;">
                             RECEIVED by the Carrier the Goods as specified above in apparent good order and condition unless otherwise stated, to be transported to such place as agreed, authorised or permitted herein and subject to all the terms and conditions appearing on the front and reverse of this Bill of Lading to which the Merchant agrees by accepting this Bill of Lading, any local privileges and customs notwithstanding.The particulars given above as stated by the shipper and the weight, measure, quantity, condition, contents and value of the Goods are unknown to the Carrier.
@@ -210,10 +210,12 @@
                             </tbody>
                         </table>
                         <!-- Page bar -->
-                        <div style="padding: 4px 0; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                            <span>Page 1 of <t t-esc="total_pages"/></span>
-                            <span>Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606</span>
-                        </div>
+                        <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666;">
+                            <tr>
+                                <td style="padding: 4px 0; text-align: left;">Page 1 of <t t-esc="total_pages"/></td>
+                                <td style="padding: 4px 0; text-align: right;">Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606</td>
+                            </tr>
+                        </table>
                         </div>
 
                         <!-- Overflow line items: continuation (rider) pages -->
@@ -257,7 +259,7 @@
                                         </tbody>
                                     </table>
                                     <!-- Spacer: fills remaining space with column dividers -->
-                                    <table style="width: 100%; height: 212mm; border-collapse: collapse; border-left: 1px solid #000; border-right: 1px solid #000; table-layout: fixed;">
+                                    <table style="width: 100%; height: 220mm; border-collapse: collapse; border-left: 1px solid #000; border-right: 1px solid #000; table-layout: fixed;">
                                         <tr>
                                             <td style="width: 18%; border-left: 1px solid #000; border-right: 1px solid #000;"> </td>
                                             <td style="width: 12%; border-right: 1px solid #000;"> </td>
@@ -268,19 +270,21 @@
                                         </tr>
                                     </table>
                                     <!-- Riders row -->
-                                    <div style="border: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 12px; font-size: 9px; background: #f8f8f8;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                                            <span>Riders <t t-esc="cont_sheet_num"/> of <t t-esc="total_sheets"/></span>
-                                            <span t-if="fcl_label" style="font-weight: bold;"><t t-esc="fcl_label"/></span>
-                                            <span t-if="freight_prepaid_display"><t t-esc="freight_prepaid_display"/></span>
-                                            <span>SHIPPED ON BOARD <t t-esc="doc.shipped_on_board.strftime('%d.%m.%Y') if doc.shipped_on_board else ''"/></span>
-                                        </div>
-                                    </div>
+                                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; background: #f8f8f8; font-size: 9px; table-layout: fixed;">
+                                        <tr>
+                                            <td style="padding: 3px 12px; text-align: left; width: 25%;">Riders <t t-esc="cont_sheet_num"/> of <t t-esc="total_sheets"/></td>
+                                            <td style="padding: 3px 12px; text-align: center; width: 25%; font-weight: bold;" t-if="fcl_label"><t t-esc="fcl_label"/></td>
+                                            <td style="padding: 3px 12px; text-align: center; width: 25%;" t-if="freight_prepaid_display"><t t-esc="freight_prepaid_display"/></td>
+                                            <td style="padding: 3px 12px; text-align: right; width: 25%;">SHIPPED ON BOARD <t t-esc="doc.shipped_on_board.strftime('%d.%m.%Y') if doc.shipped_on_board else ''"/></td>
+                                        </tr>
+                                    </table>
                                     <!-- Page bar -->
-                                    <div style="padding: 4px 0; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                                        <span>Page <t t-esc="cont_page_num"/> of <t t-esc="total_pages"/></span>
-                                        <span>Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606</span>
-                                    </div>
+                                    <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666;">
+                                        <tr>
+                                            <td style="padding: 4px 0; text-align: left;">Page <t t-esc="cont_page_num"/> of <t t-esc="total_pages"/></td>
+                                            <td style="padding: 4px 0; text-align: right;">Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606</td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </t>
                         </t>
