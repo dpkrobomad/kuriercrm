@@ -123,10 +123,10 @@
                         <t t-set="total_sheets" t-value="chunk_info.get('total_sheets', 1)"/>
                         <t t-if="doc.bill_type == 'original'"><t t-set="total_pages" t-value="total_sheets"/></t><t t-else=""><t t-set="total_pages" t-value="total_sheets + 1"/></t>
                         <t t-set="first_chunk" t-value="line_chunks[0] if line_chunks else []"/>
-                        <!-- Line items table (auto height, no gaps between rows) -->
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; border-bottom: none; margin-top: -1px; table-layout: fixed;">
+                        <!-- Line items + spacer combined table (fixed height, spacer row absorbs remaining space) -->
+                        <table style="width: 100%; height: 72mm; border-collapse: collapse; border: 1px solid #000; border-bottom: none; margin-top: -1px; table-layout: fixed;">
                             <thead>
-                                <tr style="background: #f0f0f0;">
+                                <tr style="background: #f0f0f0; height: 1px;">
                                     <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 18%;">MARKS AND NOS CONTAINER AND SEALS</th>
                                     <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">NO AND KIND OF PACKAGES</th>
                                     <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 35%;">DESCRIPTION OF PACKAGES AND GOODS, SAID TO CONTAIN</th>
@@ -138,7 +138,7 @@
                             <tbody>
                                 <t t-if="first_chunk">
                                     <t t-foreach="first_chunk" t-as="line">
-                                        <tr>
+                                        <tr style="height: 1px;">
                                             <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="(line.marks_and_nos_container or '') + (' SEAL: ' + line.seals if line.seals else '')"/></td>
                                             <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; vertical-align: top;"><t t-esc="line.no_and_kind_of_package or ''"/></td>
                                             <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="line.description or ''"/></td>
@@ -149,22 +149,20 @@
                                     </t>
                                 </t>
                                 <t t-else="">
-                                    <tr>
+                                    <tr style="height: 1px;">
                                         <td colspan="6" style="padding: 20px; text-align: center; color: #666;">No line items</td>
                                     </tr>
                                 </t>
+                                <!-- Spacer row: absorbs remaining height to push footer down -->
+                                <tr>
+                                    <td style="border-left: 1px solid #000; border-right: 1px solid #000; vertical-align: top;"> </td>
+                                    <td style="border-left: 1px solid #000; border-right: 1px solid #000; vertical-align: top;"> </td>
+                                    <td style="border-left: 1px solid #000; border-right: 1px solid #000; vertical-align: top;"> </td>
+                                    <td style="border-left: 1px solid #000; border-right: 1px solid #000; vertical-align: top;"> </td>
+                                    <td style="border-left: 1px solid #000; border-right: 1px solid #000; vertical-align: top;"> </td>
+                                    <td style="border-left: 1px solid #000; border-right: 1px solid #000; vertical-align: top;"> </td>
+                                </tr>
                             </tbody>
-                        </table>
-                        <!-- Spacer: fills space between line items and Riders row with column dividers -->
-                        <table style="width: 100%; height: 10mm; border-collapse: collapse; border-left: 1px solid #000; border-right: 1px solid #000; table-layout: fixed;">
-                            <tr>
-                                <td style="width: 18%; border-left: 1px solid #000; border-right: 1px solid #000;"> </td>
-                                <td style="width: 12%; border-right: 1px solid #000;"> </td>
-                                <td style="width: 35%; border-right: 1px solid #000;"> </td>
-                                <td style="width: 12%; border-right: 1px solid #000;"> </td>
-                                <td style="width: 12%; border-right: 1px solid #000;"> </td>
-                                <td style="width: 11%; border-right: 1px solid #000;"> </td>
-                            </tr>
                         </table>
                         <!-- Riders row -->
                         <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; background: #f8f8f8; font-size: 9px; table-layout: fixed;">
@@ -233,10 +231,10 @@
                                     <div style="text-align: left; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #ccc;">
                                         <img t-att-src="logo_url" alt="Logo" style="max-height: 60px; display: block;"/>
                                     </div>
-                                    <!-- Rider: line items (auto height, no gaps) -->
-                                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; border-bottom: none; margin-top: 0; table-layout: fixed;">
+                                    <!-- Rider: line items + spacer combined table -->
+                                    <table style="width: 100%; height: 255mm; border-collapse: collapse; border: 1px solid #000; border-bottom: none; margin-top: 0; table-layout: fixed;">
                                         <thead>
-                                            <tr style="background: #f0f0f0;">
+                                            <tr style="background: #f0f0f0; height: 1px;">
                                                 <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 18%;">MARKS AND NOS CONTAINER AND SEALS</th>
                                                 <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">NO AND KIND OF PACKAGES</th>
                                                 <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 35%;">DESCRIPTION OF PACKAGES AND GOODS, SAID TO CONTAIN</th>
@@ -247,7 +245,7 @@
                                         </thead>
                                         <tbody>
                                             <t t-foreach="chunk" t-as="line">
-                                                <tr>
+                                                <tr style="height: 1px;">
                                                     <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="(line.marks_and_nos_container or '') + (' SEAL: ' + line.seals if line.seals else '')"/></td>
                                                     <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; vertical-align: top;"><t t-esc="line.no_and_kind_of_package or ''"/></td>
                                                     <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="line.description or ''"/></td>
@@ -256,18 +254,16 @@
                                                     <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; text-align: right; vertical-align: top;"><t t-esc="'%.3f' % line.measurement if line.measurement else ''"/></td>
                                                 </tr>
                                             </t>
+                                            <!-- Spacer row: absorbs remaining height -->
+                                            <tr>
+                                                <td style="border-left: 1px solid #000; border-right: 1px solid #000; vertical-align: top;"> </td>
+                                                <td style="border-left: 1px solid #000; border-right: 1px solid #000; vertical-align: top;"> </td>
+                                                <td style="border-left: 1px solid #000; border-right: 1px solid #000; vertical-align: top;"> </td>
+                                                <td style="border-left: 1px solid #000; border-right: 1px solid #000; vertical-align: top;"> </td>
+                                                <td style="border-left: 1px solid #000; border-right: 1px solid #000; vertical-align: top;"> </td>
+                                                <td style="border-left: 1px solid #000; border-right: 1px solid #000; vertical-align: top;"> </td>
+                                            </tr>
                                         </tbody>
-                                    </table>
-                                    <!-- Spacer: fills remaining space with column dividers -->
-                                    <table style="width: 100%; height: 245mm; border-collapse: collapse; border-left: 1px solid #000; border-right: 1px solid #000; table-layout: fixed;">
-                                        <tr>
-                                            <td style="width: 18%; border-left: 1px solid #000; border-right: 1px solid #000;"> </td>
-                                            <td style="width: 12%; border-right: 1px solid #000;"> </td>
-                                            <td style="width: 35%; border-right: 1px solid #000;"> </td>
-                                            <td style="width: 12%; border-right: 1px solid #000;"> </td>
-                                            <td style="width: 12%; border-right: 1px solid #000;"> </td>
-                                            <td style="width: 11%; border-right: 1px solid #000;"> </td>
-                                        </tr>
                                     </table>
                                     <!-- Riders row -->
                                     <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; background: #f8f8f8; font-size: 9px; table-layout: fixed;">
