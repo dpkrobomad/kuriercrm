@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Custom A4 paper format for Seaway Bill with reduced top margin -->
+    <record id="paperformat_seaway_bill" model="report.paperformat">
+        <field name="name">Seaway Bill A4 Tight</field>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <!-- minimal page margins so content + footer can sit as low as possible -->
+        <field name="margin_top">3</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
     <template id="report_seaway_bill_template">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
@@ -19,10 +33,8 @@
                     <t t-set="no_of_bl_value" t-value="3 if doc.bill_type == 'non_negotiable_bl_copy' else doc.no_of_orig_bl"/>
                     <t t-set="place_and_date" t-value="place_str + (', ' + doc.issued_date.strftime('%d.%m.%Y') if doc.issued_date else place_str)"/>
                     <div class="page" style="font-family: sans-serif; padding: 0 10px; max-width: 100%; width: 100%; font-size: 10px;">
-                        <!-- First page: wrapper with fixed height so watermark centers on page 1 -->
-                        <div style="position: relative; min-height: 1120px;">
                         <t t-if="doc.bill_type == 'non_negotiable_bl_copy'">
-                            <div style="position: absolute; top: 0; left: 0; right: 0; height: 1120px; display: flex; align-items: center; justify-content: center; z-index: 0; pointer-events: none;">
+                            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; z-index: 0; pointer-events: none;">
                                 <span style="transform: rotate(-35deg); font-size: 5rem; font-weight: bold; color: #000; opacity: 0.2; white-space: nowrap;">Non Negotiable COPY</span>
                             </div>
                         </t>
@@ -105,14 +117,14 @@
                             </tbody>
                         </table>
 
-                        <!-- Cargo line items: first chunk on page 1 (no spacer), then terms+bottom on same page; overflow chunks on next pages with table header + rows -->
+                        <!-- Cargo line items -->
                         <t t-set="chunk_info" t-value="(doc_chunks or {}).get(doc.id, {'chunks': [[]], 'total_sheets': 1})"/>
                         <t t-set="line_chunks" t-value="chunk_info.get('chunks', [[]]) or [[]]"/>
                         <t t-set="total_sheets" t-value="chunk_info.get('total_sheets', 1)"/>
                         <t t-if="doc.bill_type == 'original'"><t t-set="total_pages" t-value="total_sheets"/></t><t t-else=""><t t-set="total_pages" t-value="total_sheets + 1"/></t>
-                        <!-- First chunk: table only (no big spacer), so terms and bottom stay on page 1 -->
                         <t t-set="first_chunk" t-value="line_chunks[0] if line_chunks else []"/>
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-top: -1px; table-layout: fixed;">
+                        <!-- Line items table (auto height, no gaps between rows) -->
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; border-bottom: none; margin-top: -1px; table-layout: fixed;">
                             <thead>
                                 <tr style="background: #f0f0f0;">
                                     <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 18%;">MARKS AND NOS CONTAINER AND SEALS</th>
@@ -127,43 +139,48 @@
                                 <t t-if="first_chunk">
                                     <t t-foreach="first_chunk" t-as="line">
                                         <tr>
-                                            <td style="padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="(line.marks_and_nos_container or '') + (' SEAL: ' + line.seals if line.seals else '')"/></td>
-                                            <td style="padding: 10px 8px; vertical-align: top;"><t t-esc="line.no_and_kind_of_package or ''"/></td>
-                                            <td style="padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="line.description or ''"/></td>
-                                            <td style="padding: 10px 8px; text-align: right;"><t t-esc="'%.3f' % line.gross_weight if line.gross_weight else ''"/></td>
-                                            <td style="padding: 10px 8px; text-align: right;"><t t-esc="'%.3f' % line.net_weight if line.net_weight else ''"/></td>
-                                            <td style="padding: 10px 8px; text-align: right;"><t t-esc="'%.3f' % line.measurement if line.measurement else ''"/></td>
+                                            <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="(line.marks_and_nos_container or '') + (' SEAL: ' + line.seals if line.seals else '')"/></td>
+                                            <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; vertical-align: top;"><t t-esc="line.no_and_kind_of_package or ''"/></td>
+                                            <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="line.description or ''"/></td>
+                                            <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; text-align: right; vertical-align: top;"><t t-esc="'%.3f' % line.gross_weight if line.gross_weight else ''"/></td>
+                                            <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; text-align: right; vertical-align: top;"><t t-esc="'%.3f' % line.net_weight if line.net_weight else ''"/></td>
+                                            <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; text-align: right; vertical-align: top;"><t t-esc="'%.3f' % line.measurement if line.measurement else ''"/></td>
                                         </tr>
                                     </t>
                                 </t>
                                 <t t-else="">
                                     <tr>
-                                        <td colspan="6" style="border: 1px solid #000; padding: 20px; text-align: center; color: #666;">No line items</td>
+                                        <td colspan="6" style="padding: 20px; text-align: center; color: #666;">No line items</td>
                                     </tr>
                                 </t>
-                                <tr><td colspan="6" style="padding: 0; height: 180px; vertical-align: top;"></td></tr>
-                                <tr style="background: #f8f8f8;">
-                                    <td colspan="6" style="border: 1px solid #000; border-top: none; padding: 8px 12px; font-size: 9px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                                            <span><t t-if="total_sheets == 1">Riders - 1 of 1</t><t t-else="">Riders 1 of <t t-esc="total_sheets"/></t></span>
-                                            <span t-if="fcl_label" style="font-weight: bold;"><t t-esc="fcl_label"/></span>
-                                            <span t-if="freight_prepaid_display"><t t-esc="freight_prepaid_display"/></span>
-                                            <span>SHIPPED ON BOARD <t t-esc="doc.shipped_on_board.strftime('%d.%m.%Y') if doc.shipped_on_board else ''"/></span>
-                                        </div>
-                                    </td>
-                                </tr>
                             </tbody>
                         </table>
-
-                        <!-- Terms, bottom section and footer: keep together on same page -->
-                        <div style="page-break-inside: avoid;">
-                        <!-- Terms and conditions - larger font, no margin before next table -->
+                        <!-- Spacer: fills space between line items and Riders row with column dividers -->
+                        <table style="width: 100%; height: 220px; border-collapse: collapse; border-left: 1px solid #000; border-right: 1px solid #000; table-layout: fixed;">
+                            <tr>
+                                <td style="width: 18%; border-left: 1px solid #000; border-right: 1px solid #000;"> </td>
+                                <td style="width: 12%; border-right: 1px solid #000;"> </td>
+                                <td style="width: 35%; border-right: 1px solid #000;"> </td>
+                                <td style="width: 12%; border-right: 1px solid #000;"> </td>
+                                <td style="width: 12%; border-right: 1px solid #000;"> </td>
+                                <td style="width: 11%; border-right: 1px solid #000;"> </td>
+                            </tr>
+                        </table>
+                        <!-- Riders row -->
+                        <div style="border: 1px solid #000; padding: 3px 12px; font-size: 9px; background: #f8f8f8;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                                <span><t t-if="total_sheets == 1">Riders - 1 of 1</t><t t-else="">Riders 1 of <t t-esc="total_sheets"/></t></span>
+                                <span t-if="fcl_label" style="font-weight: bold;"><t t-esc="fcl_label"/></span>
+                                <span t-if="freight_prepaid_display"><t t-esc="freight_prepaid_display"/></span>
+                                <span>SHIPPED ON BOARD <t t-esc="doc.shipped_on_board.strftime('%d.%m.%Y') if doc.shipped_on_board else ''"/></span>
+                            </div>
+                        </div>
+                        <!-- Terms -->
                         <div style="border: 1px solid #000; padding: 12px; margin-bottom: 0; font-size: 10px; line-height: 1.4; border-top: none;">
                             RECEIVED by the Carrier the Goods as specified above in apparent good order and condition unless otherwise stated, to be transported to such place as agreed, authorised or permitted herein and subject to all the terms and conditions appearing on the front and reverse of this Bill of Lading to which the Merchant agrees by accepting this Bill of Lading, any local privileges and customs notwithstanding.The particulars given above as stated by the shipper and the weight, measure, quantity, condition, contents and value of the Goods are unknown to the Carrier.
                         </div>
-
-                        <!-- Bottom section: Place of Issue (30%) | data (20%) | Date of Issue (25%) | data (25%); Row 2: 70% Kurier Vogel | 30% Stamp, no right outline -->
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; border-top: none; border-right: none; margin-bottom: 1rem;">
+                        <!-- Place of Issue -->
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; border-top: none; border-right: none; margin-bottom: 0;">
                             <colgroup>
                                 <col style="width: 30%"/><col style="width: 20%"/><col style="width: 25%"/><col style="width: 25%"/>
                             </colgroup>
@@ -177,7 +194,7 @@
                                 <tr>
                                     <td colspan="2" style="border: 1px solid #000; border-right: 1px solid #000; padding: 12px; vertical-align: top; width: 70%;">
                                         <img t-att-src="logo_url" alt="Logo" style="max-height: 45px; display: block; margin-bottom: 0.5rem;"/>
-                                        <div style=" line-height: 1.5; ">
+                                        <div style="line-height: 1.5;">
                                             Kurier Vogel Freight Broker LLC,<br/>
                                             Al Fajer Complex, 1st Floor, Off. No. 105/02,<br/>
                                             P.O. Box 124432, Oud Metha, Dubai, +97142597606<br/>
@@ -192,79 +209,83 @@
                                 </tr>
                             </tbody>
                         </table>
-
-                        <!-- Footer: page number left (Page 1 of N), customer support right -->
-                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                        <!-- Page bar -->
+                        <div style="padding: 4px 0; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                             <span>Page 1 of <t t-esc="total_pages"/></span>
                             <span>Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606</span>
                         </div>
                         </div>
-                        </div>
 
-                        <!-- Overflow line items: continuation pages (full-height layout, footer + Sheet stuck to bottom) -->
+                        <!-- Overflow line items: continuation (rider) pages -->
                         <t t-foreach="line_chunks" t-as="chunk">
                             <t t-if="chunk_index &gt; 0">
                                 <t t-set="cont_sheet_num" t-value="chunk_index + 1"/>
-                                <div style="page-break-before: always; position: relative; min-height: 1120px;">
+                                <t t-set="cont_page_num" t-value="1 + chunk_index"/>
+                                <div style="page-break-before: always;">
                                     <t t-if="doc.bill_type == 'non_negotiable_bl_copy'">
-                                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 1120px; display: flex; align-items: center; justify-content: center; z-index: 0; pointer-events: none;">
+                                        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; z-index: 0; pointer-events: none;">
                                             <span style="transform: rotate(-35deg); font-size: 5rem; font-weight: bold; color: #000; opacity: 0.2; white-space: nowrap;">Non Negotiable COPY</span>
                                         </div>
                                     </t>
-                                    <div style="position: relative; z-index: 1;">
                                     <!-- Logo header -->
                                     <div style="text-align: left; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #ccc;">
                                         <img t-att-src="logo_url" alt="Logo" style="max-height: 60px; display: block;"/>
                                     </div>
-                                    <!-- Table: 90% of page (incl. logo) = ~900px fixed height for A4 -->
-                                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-top: 0; table-layout: fixed;">
-                                            <thead>
-                                                <tr style="background: #f0f0f0;">
-                                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 18%;">MARKS AND NOS CONTAINER AND SEALS</th>
-                                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">NO AND KIND OF PACKAGES</th>
-                                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 35%;">DESCRIPTION OF PACKAGES AND GOODS, SAID TO CONTAIN</th>
-                                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">GROSS WEIGHT (KGS)</th>
-                                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">NET WEIGHT (KGS)</th>
-                                                    <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 11%;">MEASUREMENT (CBM)</th>
+                                    <!-- Rider: line items (auto height, no gaps) -->
+                                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; border-bottom: none; margin-top: 0; table-layout: fixed;">
+                                        <thead>
+                                            <tr style="background: #f0f0f0;">
+                                                <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 18%;">MARKS AND NOS CONTAINER AND SEALS</th>
+                                                <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">NO AND KIND OF PACKAGES</th>
+                                                <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 35%;">DESCRIPTION OF PACKAGES AND GOODS, SAID TO CONTAIN</th>
+                                                <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">GROSS WEIGHT (KGS)</th>
+                                                <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 12%;">NET WEIGHT (KGS)</th>
+                                                <th style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 11%;">MEASUREMENT (CBM)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="chunk" t-as="line">
+                                                <tr>
+                                                    <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="(line.marks_and_nos_container or '') + (' SEAL: ' + line.seals if line.seals else '')"/></td>
+                                                    <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; vertical-align: top;"><t t-esc="line.no_and_kind_of_package or ''"/></td>
+                                                    <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="line.description or ''"/></td>
+                                                    <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; text-align: right; vertical-align: top;"><t t-esc="'%.3f' % line.gross_weight if line.gross_weight else ''"/></td>
+                                                    <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; text-align: right; vertical-align: top;"><t t-esc="'%.3f' % line.net_weight if line.net_weight else ''"/></td>
+                                                    <td style="border-left: 1px solid #000; border-right: 1px solid #000; padding: 10px 8px; text-align: right; vertical-align: top;"><t t-esc="'%.3f' % line.measurement if line.measurement else ''"/></td>
                                                 </tr>
-                                            </thead>
-                                            <tbody>
-                                                <t t-foreach="chunk" t-as="line">
-                                                    <tr>
-                                                        <td style="padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="(line.marks_and_nos_container or '') + (' SEAL: ' + line.seals if line.seals else '')"/></td>
-                                                        <td style="padding: 10px 8px; vertical-align: top;"><t t-esc="line.no_and_kind_of_package or ''"/></td>
-                                                        <td style="padding: 10px 8px; vertical-align: top; white-space: pre-wrap;"><t t-esc="line.description or ''"/></td>
-                                                        <td style="padding: 10px 8px; text-align: right;"><t t-esc="'%.3f' % line.gross_weight if line.gross_weight else ''"/></td>
-                                                        <td style="padding: 10px 8px; text-align: right;"><t t-esc="'%.3f' % line.net_weight if line.net_weight else ''"/></td>
-                                                        <td style="padding: 10px 8px; text-align: right;"><t t-esc="'%.3f' % line.measurement if line.measurement else ''"/></td>
-                                                    </tr>
-                                                </t>
-                                                <tr><td colspan="6" style="padding: 0; height: 1000px; vertical-align: top;"></td></tr>
-                                                <tr style="background: #f8f8f8;">
-                                                    <td colspan="6" style="border: 1px solid #000; border-top: none; padding: 8px 12px; font-size: 9px;">
-                                                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                                                            <span>Riders <t t-esc="cont_sheet_num"/> of <t t-esc="total_sheets"/></span>
-                                                            <span t-if="fcl_label" style="font-weight: bold;"><t t-esc="fcl_label"/></span>
-                                                            <span t-if="freight_prepaid_display"><t t-esc="freight_prepaid_display"/></span>
-                                                            <span>SHIPPED ON BOARD <t t-esc="doc.shipped_on_board.strftime('%d.%m.%Y') if doc.shipped_on_board else ''"/></span>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    <!-- Footer: page number left (Page X of N), customer support right -->
-                                    <t t-set="cont_page_num" t-value="1 + chunk_index"/>
-                                    <div style="margin-top: 0; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                    <!-- Spacer: fills remaining space with column dividers -->
+                                    <table style="width: 100%; height: 1100px; border-collapse: collapse; border-left: 1px solid #000; border-right: 1px solid #000; table-layout: fixed;">
+                                        <tr>
+                                            <td style="width: 18%; border-left: 1px solid #000; border-right: 1px solid #000;"> </td>
+                                            <td style="width: 12%; border-right: 1px solid #000;"> </td>
+                                            <td style="width: 35%; border-right: 1px solid #000;"> </td>
+                                            <td style="width: 12%; border-right: 1px solid #000;"> </td>
+                                            <td style="width: 12%; border-right: 1px solid #000;"> </td>
+                                            <td style="width: 11%; border-right: 1px solid #000;"> </td>
+                                        </tr>
+                                    </table>
+                                    <!-- Riders row -->
+                                    <div style="border: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 12px; font-size: 9px; background: #f8f8f8;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                                            <span>Riders <t t-esc="cont_sheet_num"/> of <t t-esc="total_sheets"/></span>
+                                            <span t-if="fcl_label" style="font-weight: bold;"><t t-esc="fcl_label"/></span>
+                                            <span t-if="freight_prepaid_display"><t t-esc="freight_prepaid_display"/></span>
+                                            <span>SHIPPED ON BOARD <t t-esc="doc.shipped_on_board.strftime('%d.%m.%Y') if doc.shipped_on_board else ''"/></span>
+                                        </div>
+                                    </div>
+                                    <!-- Page bar -->
+                                    <div style="padding: 4px 0; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                                         <span>Page <t t-esc="cont_page_num"/> of <t t-esc="total_pages"/></span>
                                         <span>Customer Support : cs@kuriervogel.com | https://kuriervogel.com | Call Us On : +9714 259 7606</span>
-                                    </div>
                                     </div>
                                 </div>
                             </t>
                         </t>
                         <!-- Terms and Conditions page (3 columns), unless Original B/L -->
                         <t t-call="deepu_sale.report_seaway_bill_terms_page"/>
-                        </div>
                     </div>
                 </t>
             </t>
@@ -285,6 +306,7 @@
         string="Bill of Lading (PDF)"
         model="seaway.bill.wizard"
         report_type="qweb-pdf"
+        paperformat="paperformat_seaway_bill"
         file="deepu_sale.report_seaway_bill_template"
         name="deepu_sale.report_seaway_bill_template"
         print_report_name="'Bill of Lading - %s' % (object.bl_number or 'Draft')"
@@ -299,6 +321,7 @@
         string="Bill of Lading (PDF)"
         model="seaway.bill"
         report_type="qweb-pdf"
+        paperformat="paperformat_seaway_bill"
         file="deepu_sale.report_seaway_bill_document"
         name="deepu_sale.report_seaway_bill_document"
         print_report_name="'Bill of Lading - %s' % (object.bl_number or 'Draft')"

@@ -13,7 +13,8 @@ class ReportSeawayBill(models.AbstractModel):
     _description = 'Seaway Bill Report'
 
     LINES_PER_PAGE = 6
-    LINES_FIRST_PAGE = 3  # fewer lines on page 1 so terms + bottom + footer fit
+    # Exactly 3 rider lines on first page; rest go to continuation pages
+    LINES_FIRST_PAGE = 3
 
     @api.model
     def _get_report_values(self, docids, data=None):
