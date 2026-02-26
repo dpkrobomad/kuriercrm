@@ -111,6 +111,7 @@ class SaleOrder(models.Model):
     place_of_receipt = fields.Char(string="Place of Receipt")
     seaway_bill_ids = fields.One2many('seaway.bill', 'sale_order_id', string='Seaway Bills', readonly=True)
     seaway_bill_id = fields.Many2one('seaway.bill', string='Seaway Bill', compute='_compute_seaway_bill_id', store=False, readonly=True)
+    bol_number = fields.Char(string='BOL Number', related='seaway_bill_id.bl_number', readonly=True, store=True)
     
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):

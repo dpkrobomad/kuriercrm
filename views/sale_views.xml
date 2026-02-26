@@ -23,6 +23,7 @@
 			<field name="arch" type="xml">
 			<xpath expr="//search" position="inside">
 				<field name="email_ref_no" string="Email Ref No"/>
+				<field name="bol_number" string="BOL Number"/>
 			</xpath>
 			</field>
 		</record>
@@ -89,6 +90,7 @@
 				
 				<!-- Shipping Documents -->
 				<field name="invoice_status" position="after">
+					<field name="bol_number" optional="hide" />
 					<field name="oceanBillOfLading" optional="hide" />
 					<field name="awb" optional="hide" />
 					<field name="billOfLading" optional="hide" />
