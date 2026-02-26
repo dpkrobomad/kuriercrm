@@ -6,16 +6,16 @@
             <t t-set="chunk_info" t-value="(doc_chunks or {}).get(doc.id, {'chunks': [[]], 'total_sheets': 1})"/>
             <t t-set="terms_riders_page" t-value="chunk_info.get('total_sheets', 1) + 1"/>
             <t t-set="terms_total_pages" t-value="terms_riders_page"/>
-            <div style="page-break-before: always; padding: 8px 6px 0 6px; font-family: sans-serif;">
+            <div style="page-break-before: always; padding: 4px 6px 0 6px; font-family: sans-serif;">
                 <!-- Logo header (same as main page) -->
-                <div style="text-align: left; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #ccc;">
-                    <img t-att-src="logo_url" alt="Logo" style="max-height: 60px; display: block;"/>
+                <div style="text-align: left; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #ccc;">
+                    <img t-att-src="logo_url" alt="Logo" style="max-height: 45px; display: block;"/>
                 </div>
-                <div style="text-align: center; font-weight: bold; font-size: 9px; margin-bottom: 6px;">Bill of Lading - Terms and Conditions</div>
+                <div style="text-align: center; font-weight: bold; font-size: 8px; margin-bottom: 3px;">Bill of Lading - Terms and Conditions</div>
                 <!-- Table-based 3 columns (wkhtmltopdf does not support CSS column-count) -->
                 <table style="width: 100%; border-collapse: collapse; table-layout: fixed;" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="width: 33%; vertical-align: top; padding-right: 8px; font-size: 7px; line-height: 1.25; text-align: justify;">
+                        <td style="width: 33%; vertical-align: top; padding-right: 8px; font-size: 6px; line-height: 1.15; text-align: justify;">
                     <p style="margin: 0 0 3px 0;"><strong>1. DEFINITIONS</strong></p>
                     <p style="margin: 0 0 1px 0;"><strong>"Carrier"</strong> means the Company stated on the front of this Bill of Lading as being the carrier and on whose behalf this Bill of Lading has been signed.</p>
                     <p style="margin: 0 0 1px 0;"><strong>"Merchant"</strong> includes the shipper, the consignee, the receiver of the Goods, the holder of this Bill of Lading, any person owning or entitled to the possession of the Goods or this Bill of Lading, any person having a present or future interest in the Goods or any person acting on behalf of any of the above mentioned persons.</p>
@@ -63,7 +63,7 @@
                     <p style="margin: 0 0 1px 0;"><strong>(III)</strong> Subject to 6(C) below, where the Hague Rules, any legislation applying such Rules or the Hague-Visby Rules (such as COGSA or COGWA) is not compulsorily applicable, the Carrier's liability shall not exceed US $2.00 per kilo of the Goods lost, damaged or in respect of which the claim arises or the value of such Goods, whichever is the lesser.</p>
                     <p style="margin: 0 0 1px 0;"><strong>(IV)</strong> The value of the Goods shall be determined according to the Commodity exchange price at the place and time of delivery to the Merchant or at the place and time when they should have been so delivered or if there is no such price according to the current market price by reference to the normal value of Goods of the same kind and quality, at such place and time.</p>
                         </td>
-                        <td style="width: 33%; vertical-align: top; padding: 0 6px; font-size: 7px; line-height: 1.25; text-align: justify;">
+                        <td style="width: 33%; vertical-align: top; padding: 0 6px; font-size: 6px; line-height: 1.15; text-align: justify;">
                     <p style="margin: 0 0 1px 0;"><strong>B. Where the stage of Carriage where the loss or damage occurred can be proved:</strong></p>
                     <p style="margin: 0 0 1px 0;"><strong>(I)</strong> The liability of the Carrier shall be determined by the provisions contained in any international convention or national law of the country which provisions: (a) cannot be departed from by private contract to the detriment of the Merchant, and (b) would have applied if the Merchant had made a separate and direct contract with the Carrier in respect of the particular stage of Carriage where the loss or damage occurred and had received as evidence thereof any particular document which must be issued in order to make such international convention or national law applicable.</p>
                     <p style="margin: 0 0 1px 0;"><strong>(II)</strong> With respect to the transportation in the United States of America or in Canada to the Port of Loading or from the Port of Discharge, the responsibility of the Carrier shall be to procure transportation by carrier's (one or more) and such transportation shall be subject to the inland carrier's contracts of carriage and tariffs and any law compulsorily applicable. The Carrier guarantees the fulfilment of such inland carrier's obligations under their contracts and tariffs.</p>
@@ -94,7 +94,7 @@
                     <p style="margin: 0 0 3px 0;"><strong>9. PARTIAL INVALIDITY</strong></p>
                     <p style="margin: 0 0 5px 0;">If any provision in this Bill of Lading is held to be invalid or unenforceable by any court or regulatory agency or body, such invalidity or unenforceability shall attach only to such provision. The validity of the remaining provisions shall not be affected thereby and this Bill of Lading contract shall be carried out as if such invalid or unenforceable provision were not contained herein.</p>
                         </td>
-                        <td style="width: 33%; vertical-align: top; padding-left: 8px; font-size: 7px; line-height: 1.25; text-align: justify;">
+                        <td style="width: 33%; vertical-align: top; padding-left: 8px; font-size: 6px; line-height: 1.15; text-align: justify;">
                     <p style="margin: 0 0 3px 0;"><strong>10. TEMPERATURE CONTROLLED CARGO</strong></p>
                     <p style="margin: 0 0 1px 0;">1. The Merchant undertakes not to tender for transportation any Goods which require temperature control without previously giving written notice (and filling in the box on the front of this Bill of Lading if this Bill of Lading has been prepared by the Merchant or a person acting on his behalf) of their nature and the particular temperature range to be maintained and in the case of a temperature-controlled Container stuffed by or on behalf of the Merchant further undertakes that the Container has been properly pre-cooled, that the Goods have been properly stuffed in the Container and that its thermostatic controls have been properly set by the Merchant before receipt of the Goods by the Carrier. If the above requirements are not complied with, the Carrier shall not be liable for any loss of or damage to the Goods caused by such non-compliance.</p>
                     <p style="margin: 0 0 5px 0;">2. The Carrier shall not be liable for any loss or damage to the Goods arising from defects, derangement, breakdown, stoppage of the temperature controlling machinery, plant, insulation or any apparatus of the Container provided that the Carrier shall before or at the beginning of the Carriage exercise due diligence to maintain the refrigerated Container in an efficient state.</p>
@@ -139,7 +139,7 @@
                     </tr>
                 </table>
                 <!-- Spacer to push footer to bottom -->
-                <div style="height: 2mm;"> </div>
+                <div style="height: 1mm;"> </div>
                 <!-- Footer in normal flow -->
                 <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666;">
                     <tr>
