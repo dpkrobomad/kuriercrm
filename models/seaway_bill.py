@@ -56,6 +56,7 @@ class SeawayBill(models.Model):
         ('fcl_fcl', 'FCL to FCL'),
         ('lcl_fcl', 'LCL to FCL'),
         ('fcl_lcl', 'FCL to LCL'),
+        ('lcl_lcl', 'LCL to LCL'),
     ], string='Container Option')
 
     # 15. Shipped on Board
